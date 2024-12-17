@@ -1,6 +1,9 @@
 const themeScript = `
   let darkModeOverride = localStorage.getItem('theme');
-  let isDark = darkModeOverride === 'dark' || (!darkModeOverride && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  if (!darkModeOverride) {
+    localStorage.setItem('theme', 'light');
+  }
+  let isDark = darkModeOverride === 'dark';
   document.documentElement.classList[isDark ? 'add' : 'remove']('dark');
 `
 

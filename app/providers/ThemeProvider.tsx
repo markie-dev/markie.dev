@@ -23,13 +23,13 @@ export function ThemeProvider({
   const [theme, setTheme] = useState<Theme>(defaultTheme)
 
   useEffect(() => {
-    // Check localStorage and system preference on client-side only
-    const stored = localStorage.getItem('theme') as Theme
+    // Check localStorage and default to light mode if not set
+    const stored = localStorage.getItem('theme') as Theme;
     if (stored) {
-      setTheme(stored)
+      setTheme(stored);
     } else {
-      const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches
-      setTheme(systemPreference ? 'dark' : defaultTheme)
+      setTheme('light');
+      localStorage.setItem('theme', 'light');
     }
   }, [defaultTheme])
 
