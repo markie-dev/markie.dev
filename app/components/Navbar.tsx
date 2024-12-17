@@ -74,7 +74,7 @@ const Navbar = () => {
         const navbar = document.querySelector('nav');
         const navbarHeight = navbar ? navbar.offsetHeight : 0;
         
-        const offsetPosition = projectsSection.offsetTop - (navbarHeight + 5);
+        const offsetPosition = projectsSection.offsetTop - navbarHeight + 24;
         
         const start = window.scrollY;
         const distance = offsetPosition - start;
