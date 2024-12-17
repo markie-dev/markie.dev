@@ -23,7 +23,6 @@ export function ThemeProvider({
   const [theme, setTheme] = useState<Theme>(defaultTheme)
 
   useEffect(() => {
-    // Check localStorage and default to light mode if not set
     const stored = localStorage.getItem('theme') as Theme;
     if (stored) {
       setTheme(stored);
