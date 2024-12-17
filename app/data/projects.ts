@@ -3,14 +3,15 @@ import { Project } from "../types/project";
 export const projects: Project[] = [
   {
     title: "Doctor Finder",
-    description: "A website that allows users to find doctors in their area.",
+    description: "A website that allows users to find doctors in their area. Features include appointment scheduling, doctor reviews, patient symptoms, filtering, and more.",
     technologies: ["React", "Next.js", "Tailwind CSS", "TypeScript", "shadcn/ui", "Firebase"],
     media: {
-      type: "image",
+      type: "video",
       sources: {
-        image: "/doctorfinder.jpg"
+        mp4: "/doctorfinder.mp4",
+        webm: "/doctorfinder.webm",
       },
-      zoom: 1.1
+      zoom: 1.01
     },
     githubUrl: "https://github.com/markie-dev/capstone2024",
     liveUrl: "https://capstone2024-five.vercel.app/"
@@ -24,7 +25,6 @@ export const projects: Project[] = [
       sources: {
         mp4: "/survivethenight.mp4",
         webm: "/survivethenight.webm",
-        image: "/survivethenight.png"
       },
       zoom: 1.0
     },

@@ -12,12 +12,15 @@ export default function ProjectView() {
               {project.media.type === 'video' ? (
                 <video 
                   className="w-full h-full object-cover"
+                  style={{ 
+                    transform: `scale(${project.media.zoom || 1})`,
+                    transformOrigin: 'center center'
+                  }}
                   autoPlay
                   muted
                   loop
                   playsInline
                   preload="auto"
-                  poster={project.media.sources.image || '/placeholder-image.jpg'}
                   controls={false}
                 >
                   {project.media.sources.webm && (
