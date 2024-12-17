@@ -2,6 +2,20 @@ import { Project } from "../types/project";
 
 export const projects: Project[] = [
   {
+    title: "Doctor Finder",
+    description: "A website that allows users to find doctors in their area.",
+    technologies: ["React", "Next.js", "Tailwind CSS", "TypeScript", "shadcn/ui", "Firebase"],
+    media: {
+      type: "image",
+      sources: {
+        image: "/doctorfinder.jpg"
+      },
+      zoom: 1.1
+    },
+    githubUrl: "https://github.com/markie-dev/capstone2024",
+    liveUrl: "https://capstone2024-five.vercel.app/"
+  },
+  {
     title: "Survive the Night",
     description: "A survival game where the player must collect different items and fight off zombies. This game was made using the (UNT developed) LARC engine for my Game Programming class.",
     technologies: ["C", "C++", "DirectX/Windows API"],
