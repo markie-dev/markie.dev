@@ -16,6 +16,7 @@ export default function ProjectView() {
                   muted
                   loop
                   playsInline
+                  preload="auto"
                   controls={false}
                 >
                   {project.media.sources.webm && (
