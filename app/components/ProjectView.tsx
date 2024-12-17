@@ -17,6 +17,7 @@ export default function ProjectView() {
                   loop
                   playsInline
                   preload="auto"
+                  poster={project.media.sources.image || '/placeholder-image.jpg'}
                   controls={false}
                 >
                   {project.media.sources.webm && (

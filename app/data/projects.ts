@@ -23,7 +23,8 @@ export const projects: Project[] = [
       type: "video",
       sources: {
         mp4: "/survivethenight.mp4",
-        webm: "/survivethenight.webm"
+        webm: "/survivethenight.webm",
+        image: "/survivethenight.png"
       },
       zoom: 1.0
     },
