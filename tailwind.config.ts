@@ -9,6 +9,9 @@ export default {
   ],
   theme: {
   	extend: {
+		animation: {
+			'gradient-fast': 'gradient 10s linear infinite',
+		},
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
