@@ -14,7 +14,7 @@ async function getImageColors(imageUrl: string): Promise<[string, string, string
   ];
 
   try {
-    const { createCanvas, loadImage } = require('canvas');
+    const { createCanvas, loadImage } = require('@napi-rs/canvas');
     
     const response = await fetch(imageUrl);
     const arrayBuffer = await response.arrayBuffer();
