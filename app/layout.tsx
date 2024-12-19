@@ -33,6 +33,22 @@ export default function RootLayout({
       <head>
         <meta name="color-scheme" content="light dark" />
         <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                let theme = localStorage.getItem('theme');
+                if (!theme) {
+                  theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                  localStorage.setItem('theme', theme);
+                }
+                document.documentElement.classList.add(theme);
+                document.documentElement.style.backgroundColor = 
+                  theme === 'dark' ? 'rgb(10, 10, 10)' : 'rgb(255, 255, 255)';
+              } catch (e) {}
+            `
+          }}
+        />
+        <script
           dangerouslySetInnerHTML={{ __html: themeScript }}
         />
       </head>
