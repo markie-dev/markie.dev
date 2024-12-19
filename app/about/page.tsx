@@ -3,6 +3,7 @@ import Image from "next/image";
 import Footer from "../components/Footer";
 import MusicWidget from "../components/MusicWidget";
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export default function About() {
   return (
@@ -49,8 +50,62 @@ export default function About() {
                     <p>👨‍💻</p>
                     <p>🎮</p>
                     <p>🎧</p>
-                    <p>🏀</p>
-                    <p>🐈</p>
+                    <TooltipProvider>
+                      <Tooltip delayDuration={200}>
+                        <TooltipTrigger className="transition-colors p-1 rounded-md hover:bg-gray-200 dark:hover:bg-red-900/30">🎧</TooltipTrigger>
+                        <TooltipContent>
+                          <video 
+                            autoPlay 
+                            loop 
+                            muted 
+                            playsInline 
+                            preload="auto" 
+                            controls={false} 
+                            className="max-w-[300px] max-h-[300px] rounded-lg"
+                          >
+                            <source src="/tooltip_output.mp4" type="video/mp4" />
+                          </video>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider>
+                      <Tooltip delayDuration={200}>
+                        <TooltipTrigger className="transition-colors p-1 rounded-md hover:bg-gray-200 dark:hover:bg-red-900/30">🏀</TooltipTrigger>
+                        <TooltipContent>
+                          <video 
+                            autoPlay 
+                            loop 
+                            muted 
+                            playsInline 
+                            preload="auto" 
+                            controls={false} 
+                            className="max-w-[300px] max-h-[300px] rounded-lg"
+                          >
+                            <source src="/bball.webm" type="video/webm" />
+                            <source src="/bball.mp4" type="video/mp4" />
+                          </video>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider>
+                      <Tooltip delayDuration={200}>
+                        <TooltipTrigger className="transition-colors p-1 rounded-md hover:bg-gray-200 dark:hover:bg-red-900/30">🐈</TooltipTrigger>
+                        <TooltipContent>
+                          <video 
+                            autoPlay 
+                            loop 
+                            muted 
+                            playsInline 
+                            preload="auto" 
+                            controls={false} 
+                            className="max-w-[300px] max-h-[300px] rounded-lg"
+                          >
+                            <source src="/beno.webm" type="video/webm" />
+                            <source src="/beno.mp4" type="video/mp4" />
+                          </video>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                   {/* Second Music Widget under bio */}
                   <div className="hidden lg:block mt-8">
