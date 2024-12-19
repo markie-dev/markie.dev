@@ -47,9 +47,42 @@ export default function About() {
                   <p>Currently, I work at my school on the Datacomm team, keeping all 40,000 students online. This has taught me a lot about networking and I believe it will provide good experience for when I move on. Making projects on the side has always been exciting for me and I've learned that <span className="text-red-800 dark:text-red-600">if all the available solutions aren't what you're looking for, create your own.</span></p>
                   <p>When I'm not on VSCode or Figma, I love gaming, creating music, playing basketball, and hanging out with my cat, Beno.</p>
                   <div className="mt-8 flex gap-2 text-2xl">
-                    <p>👨‍💻</p>
-                    <p>🎮</p>
-                    <p>🎧</p>
+                    <TooltipProvider>
+                      <Tooltip delayDuration={200}>
+                        <TooltipTrigger className="transition-colors p-1 rounded-md hover:bg-gray-200 dark:hover:bg-red-900/30">👨‍💻</TooltipTrigger>
+                        <TooltipContent>
+                          <video 
+                            autoPlay 
+                            loop 
+                            muted 
+                            playsInline 
+                            preload="auto" 
+                            controls={false} 
+                            className="w-[200px] h-[300px] rounded-lg object-cover"
+                          >
+                            <source src="/setup.mp4" type="video/mp4" />
+                          </video>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider>
+                      <Tooltip delayDuration={200}>
+                        <TooltipTrigger className="transition-colors p-1 rounded-md hover:bg-gray-200 dark:hover:bg-red-900/30">🎮</TooltipTrigger>
+                        <TooltipContent>
+                          <video 
+                            autoPlay 
+                            loop 
+                            muted 
+                            playsInline 
+                            preload="auto" 
+                            controls={false} 
+                            className="w-[420px] h-[250px] rounded-lg object-cover"
+                          >
+                            <source src="/cs2_web.mp4" type="video/mp4" />
+                          </video>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     <TooltipProvider>
                       <Tooltip delayDuration={200}>
                         <TooltipTrigger className="transition-colors p-1 rounded-md hover:bg-gray-200 dark:hover:bg-red-900/30">🎧</TooltipTrigger>
@@ -63,7 +96,7 @@ export default function About() {
                             controls={false} 
                             className="w-[200px] h-[300px] rounded-lg object-cover"
                           >
-                            <source src="/tooltip_output.mp4" type="video/mp4" />
+                            <source src="/bladee.mp4" type="video/mp4" />
                           </video>
                         </TooltipContent>
                       </Tooltip>
