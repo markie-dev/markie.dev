@@ -1,32 +1,18 @@
 const themeScript = `
   (function() {
-    // Block rendering until we've done our work
-    document.documentElement.style.visibility = 'hidden';
-
-    function getTheme() {
-      let theme = localStorage.getItem('theme');
-      if (!theme) {
-        theme = 'light';
-        localStorage.setItem('theme', theme);
-      }
-      return theme;
+    let theme = localStorage.getItem('theme');
+    if (!theme) {
+      theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      localStorage.setItem('theme', theme);
     }
     
-    // Set theme class and initial styles
-    let theme = getTheme();
+    // Apply theme immediately
     document.documentElement.classList.add(theme);
-    
-    // Set initial background color
-    const style = document.createElement('style');
-    style.textContent = theme === 'dark' 
-      ? 'html { background-color: rgb(10, 10, 10); color: rgb(250, 250, 250); }' 
-      : 'html { background-color: rgb(255, 255, 255); color: rgb(10, 10, 10); }';
-    document.head.appendChild(style);
+    document.documentElement.style.colorScheme = theme;
 
-    // Unblock rendering
-    requestAnimationFrame(() => {
-      document.documentElement.style.visibility = '';
-    });
+    // Set background color immediately
+    document.documentElement.style.backgroundColor = 
+      theme === 'dark' ? 'rgb(10, 10, 10)' : 'rgb(255, 255, 255)';
   })()
 `
 

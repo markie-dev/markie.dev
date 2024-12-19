@@ -5,6 +5,8 @@ import Navbar from "./components/Navbar"
 import Template from "./template";
 import { ThemeProvider } from "./providers/ThemeProvider";
 import { ThemeScript } from './components/ThemeScript'
+import Script from 'next/script'
+import themeScript from "./lib/theme-script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,7 +31,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <ThemeScript />
+        <meta name="color-scheme" content="light dark" />
+        <script
+          dangerouslySetInnerHTML={{ __html: themeScript }}
+        />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider>

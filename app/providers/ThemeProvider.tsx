@@ -41,6 +41,15 @@ export function ThemeProvider({
     localStorage.setItem('theme', theme)
   }, [theme, mounted])
 
+  useEffect(() => {
+    if (mounted) {
+      const timeoutId = setTimeout(() => {
+        document.documentElement.classList.add('loaded');
+      }, 0);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [mounted]);
+
   const toggleTheme = () => {
     if (!theme) return
     setTheme(theme === 'light' ? 'dark' : 'light')
