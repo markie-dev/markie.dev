@@ -1,4 +1,5 @@
 import { formatRelative } from 'date-fns';
+import TrackTimestamp from './TrackTimestamp';
 
 type MusicWidgetProps = {
   trackIndex?: number;
@@ -203,7 +204,10 @@ export default async function MusicWidget({ trackIndex = 0 }: MusicWidgetProps) 
 
           <div className="flex flex-col text-white">
             <span className="text-sm font-medium opacity-90 text-white/80">
-              {isNowPlaying ? 'Now Playing' : timestamp}
+              <TrackTimestamp 
+                date={track.date} 
+                isNowPlaying={track['@attr']?.nowplaying === 'true'} 
+              />
             </span>
             <span className="font-semibold text-lg leading-tight mt-0.5 drop-shadow-sm">
               {track.name}
