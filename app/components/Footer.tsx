@@ -1,7 +1,6 @@
 'use client'
 
-import { At, LinkedinLogo, GithubLogo } from "@phosphor-icons/react";
-import { Switch } from "@/components/ui/switch";
+import { At, LinkedinLogo, GithubLogo, SunDim, MoonStars } from "@phosphor-icons/react";
 import { useTheme } from "../providers/ThemeProvider";
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
@@ -43,18 +42,20 @@ export default function Footer() {
             marcus ellison
           </button>
           <div className="flex items-center gap-2">
-            <Switch
-              checked={theme === 'dark'}
-              onCheckedChange={toggleTheme}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full hover:bg-gray-100 hover:scale-110 transition-all duration-200"
               aria-label="Toggle dark mode"
-            />
+            >
+              {theme === 'dark' ? <SunDim size={30} weight="bold" className="hover:text-red-700 transition-colors duration-200" /> : <MoonStars size={30} weight="bold" className="hover:text-red-700 transition-colors duration-200" />}
+            </button>
           </div>
         </div>
         
         <div className="flex gap-2">
           <button 
             onClick={handleEmail}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-110 transition-all duration-200"
+            className="p-2 rounded-full hover:bg-gray-100 hover:scale-110 transition-all duration-200"
             aria-label="Email"
           >
             <At size={30} weight="bold" className="hover:text-red-700 transition-colors duration-200" />
@@ -62,7 +63,7 @@ export default function Footer() {
 
           <button 
             onClick={handleGithub}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-110 transition-all duration-200"
+            className="p-2 rounded-full hover:bg-gray-100 hover:scale-110 transition-all duration-200"
             aria-label="GitHub"
           >
             <GithubLogo size={30} weight="bold" className="hover:text-red-700 transition-colors duration-200" />
@@ -70,7 +71,7 @@ export default function Footer() {
 
           <button 
             onClick={handleLinkedIn}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-110 transition-all duration-200"
+            className="p-2 rounded-full hover:bg-gray-100 hover:scale-110 transition-all duration-200"
             aria-label="LinkedIn"
           >
             <LinkedinLogo size={30} weight="bold" className="hover:text-red-700 transition-colors duration-200" />
