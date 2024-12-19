@@ -1,5 +1,8 @@
 const themeScript = `
   (function() {
+    // Block rendering until we've done our work
+    document.documentElement.style.visibility = 'hidden';
+
     function getTheme() {
       let theme = localStorage.getItem('theme');
       if (!theme) {
@@ -9,21 +12,21 @@ const themeScript = `
       return theme;
     }
     
-    // Immediately set a style block to prevent flash
-    let style = document.createElement('style');
+    // Set theme class and initial styles
     let theme = getTheme();
-    style.innerHTML = theme === 'dark' ? 
-      'html { background: black; color: white; }' : 
-      'html { background: white; color: black; }';
-    document.head.appendChild(style);
-    
-    // Then set the class
     document.documentElement.classList.add(theme);
     
-    // Remove the style block after a short delay
-    setTimeout(() => {
-      style.remove();
-    }, 0);
+    // Set initial background color
+    const style = document.createElement('style');
+    style.textContent = theme === 'dark' 
+      ? 'html { background-color: rgb(10, 10, 10); color: rgb(250, 250, 250); }' 
+      : 'html { background-color: rgb(255, 255, 255); color: rgb(10, 10, 10); }';
+    document.head.appendChild(style);
+
+    // Unblock rendering
+    requestAnimationFrame(() => {
+      document.documentElement.style.visibility = '';
+    });
   })()
 `
 

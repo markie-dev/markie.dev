@@ -19,6 +19,11 @@ html.dark {
   color: hsl(var(--foreground));
 }
 
+/* Disable transitions during page load */
+.preload * {
+  transition: none !important;
+}
+
 body {
   font-family: Geist, sans-serif, Arial, Helvetica, sans-serif;
 }
