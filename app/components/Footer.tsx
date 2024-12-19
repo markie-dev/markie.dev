@@ -4,11 +4,17 @@ import { At, LinkedinLogo, GithubLogo, SunDim, MoonStars } from "@phosphor-icons
 import { useTheme } from "../providers/ThemeProvider";
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 export default function Footer() {
   const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleEmail = () => {
     window.location.href = "mailto:marcus.d.ellison@gmail.com";
@@ -42,13 +48,15 @@ export default function Footer() {
             marcus ellison
           </button>
           <div className="flex items-center gap-2">
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-full hover:bg-gray-100 hover:scale-110 transition-all duration-200"
-              aria-label="Toggle dark mode"
-            >
-              {theme === 'dark' ? <SunDim size={30} weight="bold" className="hover:text-red-700 transition-colors duration-200" /> : <MoonStars size={30} weight="bold" className="hover:text-red-700 transition-colors duration-200" />}
-            </button>
+            {mounted && theme && (
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-full hover:bg-gray-100 hover:scale-110 transition-all duration-200"
+                aria-label="Toggle dark mode"
+              >
+                {theme === 'dark' ? <SunDim size={30} weight="bold" className="hover:text-red-700 transition-colors duration-200" /> : <MoonStars size={30} weight="bold" className="hover:text-red-700 transition-colors duration-200" />}
+              </button>
+            )}
           </div>
         </div>
         

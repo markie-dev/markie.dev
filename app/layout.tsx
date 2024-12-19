@@ -4,7 +4,7 @@ import "./globals.css";
 import Navbar from "./components/Navbar"
 import Template from "./template";
 import { ThemeProvider } from "./providers/ThemeProvider";
-import themeScript from './lib/theme-script'
+import { ThemeScript } from './components/ThemeScript'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <ThemeScript />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider>
