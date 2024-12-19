@@ -61,7 +61,7 @@ export default function About() {
                             playsInline 
                             preload="auto" 
                             controls={false} 
-                            className="max-w-[300px] max-h-[300px] rounded-lg"
+                            className="w-[200px] h-[300px] rounded-lg object-cover"
                           >
                             <source src="/tooltip_output.mp4" type="video/mp4" />
                           </video>
@@ -79,7 +79,7 @@ export default function About() {
                             playsInline 
                             preload="auto" 
                             controls={false} 
-                            className="max-w-[300px] max-h-[300px] rounded-lg"
+                            className="w-[200px] h-[300px] rounded-lg object-cover"
                           >
                             <source src="/bball.webm" type="video/webm" />
                             <source src="/bball.mp4" type="video/mp4" />
@@ -98,7 +98,7 @@ export default function About() {
                             playsInline 
                             preload="auto" 
                             controls={false} 
-                            className="max-w-[300px] max-h-[300px] rounded-lg"
+                            className="w-[200px] h-[300px] rounded-lg object-cover"
                           >
                             <source src="/beno.webm" type="video/webm" />
                             <source src="/beno.mp4" type="video/mp4" />
