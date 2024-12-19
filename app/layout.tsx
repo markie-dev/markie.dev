@@ -33,6 +33,7 @@ export default function RootLayout({
       <head>
         <meta name="color-scheme" content="light dark" />
         <script
+          data-cfasync="false"
           dangerouslySetInnerHTML={{
             __html: `
               try {
@@ -49,6 +50,7 @@ export default function RootLayout({
           }}
         />
         <script
+          data-cfasync="false"
           dangerouslySetInnerHTML={{ __html: themeScript }}
         />
       </head>
