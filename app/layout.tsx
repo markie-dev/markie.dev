@@ -43,8 +43,6 @@ export default function RootLayout({
                   localStorage.setItem('theme', theme);
                 }
                 document.documentElement.classList.add(theme);
-                document.documentElement.style.backgroundColor = 
-                  theme === 'dark' ? 'rgb(10, 10, 10)' : 'rgb(255, 255, 255)';
               } catch (e) {}
             `
           }}

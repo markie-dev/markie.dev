@@ -11,12 +11,7 @@
 }
 
 html.dark {
-  background-color: rgb(10, 10, 10);
-}
-
-/* Only apply transitions after the page is loaded */
-html.loaded {
-  transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: rgb(10, 10, 10) !important;
 }
 
 body {
