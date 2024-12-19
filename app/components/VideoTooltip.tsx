@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { X } from '@phosphor-icons/react';
 
 interface VideoTooltipProps {
   emoji: string;
@@ -84,7 +85,7 @@ export default function VideoTooltip({
                   className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-transform duration-200 active:scale-90"
                   onClick={() => setIsOpen(false)}
                 >
-                  ✕
+                  <X size={18} weight="bold" />
                 </button>
               </div>
             </div>
