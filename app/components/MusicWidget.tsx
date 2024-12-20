@@ -222,11 +222,10 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
         rel="noopener noreferrer"
         className={`
           block relative overflow-hidden rounded-xl shadow-lg 
-          transition-all duration-200 ease-out
           ${isTransitioning ? 'opacity-0' : 'opacity-100'}
         `}
         style={{
-          transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: 'opacity 200ms cubic-bezier(0.4, 0, 0.2, 1)',
         }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
@@ -305,11 +304,11 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
                 priority
                 className={`
                   rounded-lg shadow-lg ring-1 ring-white/10
-                  transition-opacity duration-300
                   ${imageLoaded ? 'opacity-100' : 'opacity-0'}
                 `}
                 style={{
                   boxShadow: '0 8px 20px rgb(0 0 0 / 0.3)',
+                  transition: 'opacity 300ms ease-in-out',
                 }}
                 onLoad={() => setImageLoaded(true)}
               />
