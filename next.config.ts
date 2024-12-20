@@ -47,6 +47,10 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizeServerReact: true,
   },
+  webpack: (config) => {
+    config.externals = [...config.externals, { '@napi-rs/canvas': '@napi-rs/canvas' }];  // required to make Konva & react-konva work
+    return config;
+  },
 };
 
 export default nextConfig;
