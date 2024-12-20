@@ -6,6 +6,7 @@ import TrackTimestamp from './TrackTimestamp';
 import type { getTrackDetails } from '../actions/getTrackDetails';
 import Image from 'next/image';
 import { mix } from 'color2k';
+import type { CSSProperties } from 'react';
 
 type MusicWidgetProps = {
   initialTracks: NonNullable<Awaited<ReturnType<typeof getTrackDetails>>>[];
@@ -233,7 +234,7 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
     setIsHovering(false);
     
     const startTime = performance.now();
-    const duration = 700;
+    const duration = 500;
 
     const animate = (currentTime: number) => {
       const elapsed = currentTime - startTime;
@@ -255,14 +256,24 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
     };
   }, [currentTrack]);
 
+  // Add Safari detection
+  const isSafari = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  }, []);
+
+  const safariStyles: CSSProperties = isSafari ? {
+    transform: 'translateZ(0)',
+    backfaceVisibility: 'hidden',
+    WebkitBackfaceVisibility: 'hidden'
+  } : {};
+
   return (
     <div 
-      className="group relative transition-transform duration-300 ease-out hover:scale-[1.02]"
+      className="group relative transform-gpu transition-transform duration-300 ease-out hover:scale-[1.02]"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
       style={{
-        // Force a new stacking context
-        isolation: 'isolate',
         willChange: 'transform'
       }}
     >
@@ -299,16 +310,12 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         className={`
-          block relative overflow-hidden rounded-xl shadow-lg 
+          block relative overflow-hidden rounded-xl shadow-lg
           ${isTransitioning ? 'opacity-0' : 'opacity-100'}
         `}
         style={{
-          transform: 'translateZ(0)',
-          backfaceVisibility: 'hidden',
-          WebkitFontSmoothing: 'antialiased',
-          WebkitBackfaceVisibility: 'hidden',
-          WebkitTransformStyle: 'preserve-3d',
-          WebkitMaskImage: '-webkit-radial-gradient(white, black)',
+          WebkitMaskImage: isSafari ? '-webkit-radial-gradient(white, black)' : undefined,
+          ...safariStyles
         }}
       >
         {/* Wrapper div for better corner rendering */}
@@ -327,11 +334,15 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
               )`,
               backgroundSize: '200% 200%',
               opacity: 0.85,
-              filter: ENABLE_BLUR_EFFECTS ? 'brightness(0.7)' : 'none',
-              transform: 'translateZ(0)',
-              WebkitFontSmoothing: 'antialiased',
-              WebkitBackfaceVisibility: 'hidden'
+              filter: 'brightness(0.7)',
+              ...(isSafari ? safariStyles : {})
             }}
+          />
+
+          {/* Darkening overlay */}
+          <div 
+            className="absolute inset-0 bg-black/30"
+            style={isSafari ? safariStyles : undefined}
           />
 
           {/* Dynamic gradient overlay */}
@@ -346,10 +357,8 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
               `,
               backgroundSize: '200% 200%',
               mixBlendMode: 'soft-light',
-              opacity: ENABLE_BLUR_EFFECTS ? 0.8 : 0.5,
-              transform: 'translateZ(0)',
-              WebkitFontSmoothing: 'antialiased',
-              WebkitBackfaceVisibility: 'hidden'
+              opacity: 0.6,
+              ...(isSafari ? safariStyles : {})
             }}
           />
 
@@ -363,9 +372,7 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
               `,
               opacity: 0.4,
               mixBlendMode: 'overlay',
-              transform: 'translateZ(0)',
-              WebkitFontSmoothing: 'antialiased',
-              WebkitBackfaceVisibility: 'hidden'
+              ...(isSafari ? safariStyles : {})
             }}
           />
         </div>
@@ -400,7 +407,9 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
                   ${imageLoaded ? 'opacity-100' : 'opacity-0'}
                 `}
                 style={{
-                  boxShadow: '0 8px 20px rgb(0 0 0 / 0.3)'
+                  boxShadow: '0 8px 20px rgb(0 0 0 / 0.3)',
+                  WebkitFontSmoothing: 'antialiased',
+                  WebkitBackfaceVisibility: 'hidden'
                 }}
                 onLoad={() => setImageLoaded(true)}
               />
@@ -410,12 +419,6 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
                   style={{ width: '64px', height: '64px' }}
                 />
               )}
-              <div 
-                className="absolute -bottom-12 left-0 right-0 h-12 blur-sm opacity-30"
-                style={{
-                  background: `linear-gradient(to bottom, ${interpolatedColors.color1}, transparent)`,
-                }}
-              />
             </div>
 
             <div className="flex flex-col text-white min-w-0 flex-1">
