@@ -19,10 +19,10 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
   const ENABLE_BLUR_EFFECTS = true;
   const PRELOAD_THRESHOLD = 3; // Reduced since we know the limit
   const currentTrack = tracks[trackIndex];
-  const touchStartX = useRef<number | null>(null);
-  const SWIPE_THRESHOLD = 50; // Minimum swipe distance to trigger navigation
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
   const [imageLoaded, setImageLoaded] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+  const SWIPE_THRESHOLD = 50;
 
   const fetchMoreTracks = useCallback(async () => {
     if (isLoading || reachedEnd) {
@@ -106,28 +106,6 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
     changeTrack(newIndex);
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null) return;
-
-    const touchEndX = e.changedTouches[0].clientX;
-    const swipeDistance = touchEndX - touchStartX.current;
-
-    if (Math.abs(swipeDistance) >= SWIPE_THRESHOLD) {
-      if (swipeDistance > 0) {
-        const newIndex = trackIndex > 0 ? trackIndex - 1 : tracks.length - 1;
-        changeTrack(newIndex);
-      } else {
-        const newIndex = trackIndex < tracks.length - 1 ? trackIndex + 1 : 0;
-        changeTrack(newIndex);
-      }
-    }
-    touchStartX.current = null;
-  };
-
   const preloadImage = useCallback((src: string) => {
     if (!src) {
       console.log('🚫 Skipping preload - No source provided');
@@ -174,13 +152,46 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
     setImageLoaded(false);
     console.log('🔄 Track changed to:', currentTrack.albumArt);
     
-    if (preloadedImages.has(currentTrack.albumArt)) {
-      console.log('✅ Image found in preloaded cache, showing immediately');
+    // Check if it's the default album art
+    const isDefaultArt = currentTrack.albumArt.includes('2a96cbd8b46e442fc41c2b86b821562f');
+    
+    if (isDefaultArt || preloadedImages.has(currentTrack.albumArt)) {
+      console.log('✅ Image found in preloaded cache or is default art, showing immediately');
       setImageLoaded(true);
     } else {
       console.log('⏳ Waiting for image to load...');
     }
   }, [currentTrack.albumArt, preloadedImages]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX.current - touchEndX;
+    
+    if (Math.abs(diff) > SWIPE_THRESHOLD) {
+      if (diff > 0) {
+        handleNext(e as unknown as React.MouseEvent);
+      } else {
+        handlePrevious(e as unknown as React.MouseEvent);
+      }
+    }
+    
+    touchStartX.current = null;
+  };
+
+  const buttonBaseClasses = `
+    absolute top-1/2 -translate-y-1/2 z-10
+    p-3 rounded-full bg-black/20 backdrop-blur-sm
+    text-white/70 hover:text-white
+    transition-all duration-200
+    hidden md:block md:opacity-0 md:group-hover:opacity-100
+    ${isTransitioning ? 'pointer-events-none' : ''}
+  `;
 
   return (
     <div className="group relative hover:scale-[1.02] transition-transform duration-500 ease-out">
@@ -188,12 +199,9 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
       <button
         onClick={handlePrevious}
         className={`
-          absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10
-          p-3 rounded-full bg-black/20 backdrop-blur-sm
-          text-white/70 hover:text-white
-          transition-all duration-200
-          opacity-0 group-hover:opacity-100
-          ${isTransitioning ? 'pointer-events-none' : ''}
+          ${buttonBaseClasses}
+          left-0 md:-translate-x-1/2
+          translate-x-2 md:-translate-x-1/2
         `}
         aria-label="Previous track"
       >
@@ -204,12 +212,9 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
       <button
         onClick={handleNext}
         className={`
-          absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 z-10
-          p-3 rounded-full bg-black/20 backdrop-blur-sm
-          text-white/70 hover:text-white
-          transition-all duration-200
-          opacity-0 group-hover:opacity-100
-          ${isTransitioning ? 'pointer-events-none' : ''}
+          ${buttonBaseClasses}
+          right-0 md:translate-x-1/2
+          -translate-x-2 md:translate-x-1/2
         `}
         aria-label="Next track"
       >
@@ -220,6 +225,8 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
         href={currentTrack.trackUrl}
         target="_blank"
         rel="noopener noreferrer"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
         className={`
           block relative overflow-hidden rounded-xl shadow-lg 
           ${isTransitioning ? 'opacity-0' : 'opacity-100'}
@@ -227,8 +234,6 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
         style={{
           transition: 'opacity 200ms cubic-bezier(0.4, 0, 0.2, 1)',
         }}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
       >
         {/* Base gradient layer with multiple color stops */}
         <div
