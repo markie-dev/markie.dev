@@ -222,11 +222,11 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
         rel="noopener noreferrer"
         className={`
           block relative overflow-hidden rounded-xl shadow-lg 
-          transition-opacity duration-200
+          transition-all duration-200 ease-out
           ${isTransitioning ? 'opacity-0' : 'opacity-100'}
         `}
         style={{
-          transition: 'opacity 200ms ease-in-out',
+          transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
         }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
