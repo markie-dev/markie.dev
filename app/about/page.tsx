@@ -1,11 +1,25 @@
+'use server';
+
 import { Suspense } from 'react';
 import Image from "next/image";
 import Footer from "../components/Footer";
 import MusicWidget from "../components/MusicWidget";
 import { Skeleton } from "@/components/ui/skeleton"
 import VideoTooltip from "../components/VideoTooltip";
+import { getTrackDetails } from '../actions/getTrackDetails';
 
-export default function About() {
+async function getInitialTracks() {
+  const tracks = await Promise.all([
+    getTrackDetails(0),
+    getTrackDetails(1),
+    getTrackDetails(2),
+  ]);
+  return tracks.filter((track): track is NonNullable<typeof track> => track !== null);
+}
+
+export default async function About() {
+  const tracks = await getInitialTracks();
+
   return (
     <Suspense fallback={
       <div className="flex flex-col justify-between max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -86,20 +100,7 @@ export default function About() {
                   {/* Second Music Widget under bio */}
                   <div className="hidden lg:block mt-8">
                     <div className="relative z-10 h-[120px]">
-                      <Suspense fallback={
-                        <div className="p-4 flex items-center gap-4 rounded-xl bg-gray-200/80 dark:bg-gray-800/80 backdrop-blur-sm">
-                          <div className="shrink-0">
-                            <Skeleton className="w-16 h-16 rounded-lg" />
-                          </div>
-                          <div className="flex flex-col gap-2 flex-grow">
-                            <Skeleton className="h-4 w-20" />
-                            <Skeleton className="h-6 w-3/4" />
-                            <Skeleton className="h-4 w-1/2" />
-                          </div>
-                        </div>
-                      }>
-                        <MusicWidget trackIndex={0} />
-                      </Suspense>
+                      <MusicWidget initialTracks={tracks} />
                     </div>
                   </div>
                 </div>
@@ -109,20 +110,7 @@ export default function About() {
             {/* Mobile Music Widgets with fixed height */}
             <div className="lg:hidden mt-8 flex flex-col gap-4 h-[120px]">
               <div className="relative z-10 h-full">
-                <Suspense fallback={
-                  <div className="p-4 flex items-center gap-4 rounded-xl bg-gray-200/80 dark:bg-gray-800/80 backdrop-blur-sm h-full">
-                    <div className="shrink-0">
-                      <Skeleton className="w-16 h-16 rounded-lg" />
-                    </div>
-                    <div className="flex flex-col gap-2 flex-grow">
-                      <Skeleton className="h-4 w-20" />
-                      <Skeleton className="h-6 w-3/4" />
-                      <Skeleton className="h-4 w-1/2" />
-                    </div>
-                  </div>
-                }>
-                  <MusicWidget trackIndex={0} />
-                </Suspense>
+                <MusicWidget initialTracks={tracks} />
               </div>
             </div>
           </div>
