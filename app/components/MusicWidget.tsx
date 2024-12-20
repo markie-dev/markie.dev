@@ -7,6 +7,7 @@ import type { getTrackDetails } from '../actions/getTrackDetails';
 import Image from 'next/image';
 import { mix } from 'color2k';
 import type { CSSProperties } from 'react';
+import defaultAlbumArt from '@/public/default.webp';
 
 type MusicWidgetProps = {
   initialTracks: NonNullable<Awaited<ReturnType<typeof getTrackDetails>>>[];
@@ -36,6 +37,8 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
   const [previousColors, setPreviousColors] = useState(currentColors);
   const animationRef = useRef<number | undefined>(undefined);
   const [isHovering, setIsHovering] = useState(false);
+
+  const DEFAULT_ALBUM_ART = defaultAlbumArt.src;
 
   const fetchMoreTracks = useCallback(async () => {
     if (isLoading || reachedEnd) {
@@ -116,30 +119,32 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
   };
 
   const preloadImage = useCallback((src: string) => {
-    if (!src) {
+    const imageUrl = src === '/default.webp' ? DEFAULT_ALBUM_ART : src;
+    
+    if (!imageUrl) {
       console.log('🚫 Skipping preload - No source provided');
       return Promise.resolve();
     }
     
-    if (preloadedImages.has(src)) {
-      console.log('✅ Image already preloaded:', src);
+    if (preloadedImages.has(imageUrl)) {
+      console.log('✅ Image already preloaded:', imageUrl);
       return Promise.resolve();
     }
 
-    console.log('🔄 Starting preload for:', src);
+    console.log('🔄 Starting preload for:', imageUrl);
     
     return new Promise((resolve, reject) => {
       const img = new window.Image();
       img.onload = () => {
-        console.log('✅ Successfully preloaded:', src);
-        setPreloadedImages(prev => new Set(prev).add(src));
+        console.log('✅ Successfully preloaded:', imageUrl);
+        setPreloadedImages(prev => new Set(prev).add(imageUrl));
         resolve(undefined);
       };
       img.onerror = (error) => {
-        console.error('❌ Failed to preload:', src, error);
+        console.error('❌ Failed to preload:', imageUrl, error);
         reject(error);
       };
-      img.src = src;
+      img.src = imageUrl;
     });
   }, [preloadedImages]);
 
@@ -398,7 +403,7 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
             {/* Album art */}
             <div className="relative shrink-0">
               <Image
-                src={currentTrack.albumArt}
+                src={currentTrack.albumArt === '/default.webp' ? DEFAULT_ALBUM_ART : currentTrack.albumArt}
                 alt={`${currentTrack.track.name} album art`}
                 width={64}
                 height={64}
