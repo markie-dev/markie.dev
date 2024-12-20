@@ -167,12 +167,11 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
     console.log('🔄 Track changed to:', currentTrack.albumArt);
     
     // Check if it's the default album art
-    const isDefaultArt = currentTrack.albumArt.includes('2a96cbd8b46e442fc41c2b86b821562f');
+    const isDefaultArt = currentTrack.albumArt === '/default.webp';
     
     if (isDefaultArt || preloadedImages.has(currentTrack.albumArt)) {
       console.log('✅ Image found in preloaded cache or is default art, showing immediately');
-      // Add a small delay to prevent flickering
-      setTimeout(() => setImageLoaded(true), 0);
+      setImageLoaded(true);
     } else {
       console.log('⏳ Waiting for image to load...');
     }
@@ -410,7 +409,6 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
                 priority
                 className={`
                   rounded-lg shadow-lg ring-1 ring-white/10
-                  transition-opacity duration-200
                   ${imageLoaded ? 'opacity-100' : 'opacity-0'}
                 `}
                 style={{
@@ -424,7 +422,7 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
                 }}
                 onError={() => {
                   console.error('❌ Image failed to load:', currentTrack.albumArt);
-                  setImageLoaded(true); // Show the image anyway in case of error
+                  setImageLoaded(true);
                 }}
               />
               {!imageLoaded && (
