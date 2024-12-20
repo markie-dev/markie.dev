@@ -34,6 +34,7 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
   const [colorProgress, setColorProgress] = useState(1);
   const [previousColors, setPreviousColors] = useState(currentColors);
   const animationRef = useRef<number | undefined>(undefined);
+  const [isHovering, setIsHovering] = useState(false);
 
   const fetchMoreTracks = useCallback(async () => {
     if (isLoading || reachedEnd) {
@@ -199,7 +200,6 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
   text-white/70 dark:text-black/70 
   hover:text-white dark:hover:text-black
   hidden md:block md:opacity-0 md:group-hover:opacity-100
-  transition-all duration-200 ease-in-out
   ${isTransitioning ? 'pointer-events-none' : ''}
 `;
 
@@ -229,8 +229,11 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
     setPreviousColors(interpolatedColors);
     setColorProgress(0);
     
+    // Force a reset of hover state when track changes
+    setIsHovering(false);
+    
     const startTime = performance.now();
-    const duration = 400; // match this with your transition duration
+    const duration = 700;
 
     const animate = (currentTime: number) => {
       const elapsed = currentTime - startTime;
@@ -253,7 +256,16 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
   }, [currentTrack]);
 
   return (
-    <div className="group relative transition-transform duration-300 ease-out hover:scale-[1.02]">
+    <div 
+      className="group relative transition-transform duration-300 ease-out hover:scale-[1.02]"
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+      style={{
+        // Force a new stacking context
+        isolation: 'isolate',
+        willChange: 'transform'
+      }}
+    >
       {/* Previous Arrow */}
       <button
         onClick={handlePrevious}
@@ -290,53 +302,73 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
           block relative overflow-hidden rounded-xl shadow-lg 
           ${isTransitioning ? 'opacity-0' : 'opacity-100'}
         `}
+        style={{
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
+          WebkitFontSmoothing: 'antialiased',
+          WebkitBackfaceVisibility: 'hidden',
+          WebkitTransformStyle: 'preserve-3d',
+          WebkitMaskImage: '-webkit-radial-gradient(white, black)',
+        }}
       >
-        {/* Base gradient layer */}
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `linear-gradient(145deg, 
-              ${interpolatedColors.color1} 0%,
-              ${interpolatedColors.color2} 20%,
-              ${interpolatedColors.color3} 40%,
-              ${interpolatedColors.color4} 60%,
-              ${interpolatedColors.color5} 80%,
-              ${interpolatedColors.color1} 100%
-            )`,
-            backgroundSize: '200% 200%',
-            opacity: 0.85,
-            filter: ENABLE_BLUR_EFFECTS ? 'brightness(0.7)' : 'none',
-          }}
-        />
+        {/* Wrapper div for better corner rendering */}
+        <div className="absolute inset-0 overflow-hidden rounded-xl">
+          {/* Base gradient layer */}
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `linear-gradient(145deg, 
+                ${interpolatedColors.color1} 0%,
+                ${interpolatedColors.color2} 20%,
+                ${interpolatedColors.color3} 40%,
+                ${interpolatedColors.color4} 60%,
+                ${interpolatedColors.color5} 80%,
+                ${interpolatedColors.color1} 100%
+              )`,
+              backgroundSize: '200% 200%',
+              opacity: 0.85,
+              filter: ENABLE_BLUR_EFFECTS ? 'brightness(0.7)' : 'none',
+              transform: 'translateZ(0)',
+              WebkitFontSmoothing: 'antialiased',
+              WebkitBackfaceVisibility: 'hidden'
+            }}
+          />
 
-        {/* Dynamic gradient overlay */}
-        <div
-          className="absolute inset-0 animate-gradient-fast"
-          style={{
-            backgroundImage: `
-              radial-gradient(circle at 0% 0%, ${interpolatedColors.color1}, transparent 50%),
-              radial-gradient(circle at 100% 0%, ${interpolatedColors.color3}, transparent 50%),
-              radial-gradient(circle at 100% 100%, ${interpolatedColors.color5}, transparent 50%),
-              radial-gradient(circle at 0% 100%, ${interpolatedColors.color2}, transparent 50%)
-            `,
-            backgroundSize: '200% 200%',
-            mixBlendMode: 'soft-light',
-            opacity: ENABLE_BLUR_EFFECTS ? 0.8 : 0.5,
-          }}
-        />
+          {/* Dynamic gradient overlay */}
+          <div
+            className="absolute inset-0 animate-gradient-fast"
+            style={{
+              backgroundImage: `
+                radial-gradient(circle at 0% 0%, ${interpolatedColors.color1}, transparent 50%),
+                radial-gradient(circle at 100% 0%, ${interpolatedColors.color3}, transparent 50%),
+                radial-gradient(circle at 100% 100%, ${interpolatedColors.color5}, transparent 50%),
+                radial-gradient(circle at 0% 100%, ${interpolatedColors.color2}, transparent 50%)
+              `,
+              backgroundSize: '200% 200%',
+              mixBlendMode: 'soft-light',
+              opacity: ENABLE_BLUR_EFFECTS ? 0.8 : 0.5,
+              transform: 'translateZ(0)',
+              WebkitFontSmoothing: 'antialiased',
+              WebkitBackfaceVisibility: 'hidden'
+            }}
+          />
 
-        {/* Color accent spots */}
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `
-              radial-gradient(circle at 30% 20%, ${interpolatedColors.color4}, transparent 20%),
-              radial-gradient(circle at 70% 80%, ${interpolatedColors.color2}, transparent 20%)
-            `,
-            opacity: 0.4,
-            mixBlendMode: 'overlay',
-          }}
-        />
+          {/* Color accent spots */}
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `
+                radial-gradient(circle at 30% 20%, ${interpolatedColors.color4}, transparent 20%),
+                radial-gradient(circle at 70% 80%, ${interpolatedColors.color2}, transparent 20%)
+              `,
+              opacity: 0.4,
+              mixBlendMode: 'overlay',
+              transform: 'translateZ(0)',
+              WebkitFontSmoothing: 'antialiased',
+              WebkitBackfaceVisibility: 'hidden'
+            }}
+          />
+        </div>
 
         {/* Noise texture */}
         <div 
