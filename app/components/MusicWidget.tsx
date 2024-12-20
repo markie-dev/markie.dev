@@ -11,6 +11,7 @@ type MusicWidgetProps = {
 }
 
 export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [trackIndex, setTrackIndex] = useState(0);
   const [tracks, setTracks] = useState(initialTracks);
   const [isLoading, setIsLoading] = useState(false);
@@ -20,6 +21,7 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
   const currentTrack = tracks[trackIndex];
   const touchStartX = useRef<number | null>(null);
   const SWIPE_THRESHOLD = 50; // Minimum swipe distance to trigger navigation
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const fetchMoreTracks = useCallback(async () => {
     if (isLoading || reachedEnd) {
@@ -79,23 +81,28 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
     }
   }, [trackIndex, tracks.length, fetchMoreTracks, reachedEnd]);
 
+  const changeTrack = (newIndex: number) => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setTrackIndex(newIndex);
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 50);
+    }, 200);
+  };
+
   const handlePrevious = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setTrackIndex((prev) => {
-      const newIndex = prev > 0 ? prev - 1 : tracks.length - 1;
-      return newIndex;
-    });
+    const newIndex = trackIndex > 0 ? trackIndex - 1 : tracks.length - 1;
+    changeTrack(newIndex);
   };
 
   const handleNext = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setTrackIndex((prev) => {
-      // If we're at the end, loop back to the beginning
-      const newIndex = prev < tracks.length - 1 ? prev + 1 : 0;
-      return newIndex;
-    });
+    const newIndex = trackIndex < tracks.length - 1 ? trackIndex + 1 : 0;
+    changeTrack(newIndex);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -110,59 +117,80 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
 
     if (Math.abs(swipeDistance) >= SWIPE_THRESHOLD) {
       if (swipeDistance > 0) {
-        handlePrevious({
-          preventDefault: () => {},
-          stopPropagation: () => {},
-        } as React.MouseEvent);
+        const newIndex = trackIndex > 0 ? trackIndex - 1 : tracks.length - 1;
+        changeTrack(newIndex);
       } else {
-        handleNext({
-          preventDefault: () => {},
-          stopPropagation: () => {},
-        } as React.MouseEvent);
+        const newIndex = trackIndex < tracks.length - 1 ? trackIndex + 1 : 0;
+        changeTrack(newIndex);
       }
     }
     touchStartX.current = null;
   };
 
+  const preloadImages = useCallback((tracksToPreload: typeof tracks) => {
+    tracksToPreload.forEach(track => {
+      if (track?.albumArt) {
+        const img = new window.Image();
+        img.src = track.albumArt;
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    const nextTracks = tracks.slice(trackIndex + 1, trackIndex + PRELOAD_THRESHOLD);
+    preloadImages(nextTracks);
+  }, [trackIndex, tracks, preloadImages]);
+
+  useEffect(() => {
+    setImageLoaded(false);
+  }, [currentTrack.albumArt]);
+
   return (
-    <div className="group relative">
-      {/* Navigation Controls */}
-      <div className="absolute inset-y-0 -left-4 flex items-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
-        <button
-          onClick={handlePrevious}
-          className="p-2 rounded-full bg-gray-100/80 dark:bg-zinc-800/80 backdrop-blur-sm 
-            text-gray-700 dark:text-gray-300 
-            hover:bg-gray-200/90 dark:hover:bg-zinc-700/90 
-            hover:text-red-700 dark:hover:text-red-400 
-            hover:scale-110 
-            transition-all duration-200 ease-in-out
-            shadow-lg"
-          aria-label="Previous track"
-        >
-          <ArrowLeft size={20} weight="bold" />
-        </button>
-      </div>
-      <div className="absolute inset-y-0 -right-4 flex items-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
-        <button
-          onClick={handleNext}
-          className="p-2 rounded-full bg-gray-100/80 dark:bg-zinc-800/80 backdrop-blur-sm 
-            text-gray-700 dark:text-gray-300 
-            hover:bg-gray-200/90 dark:hover:bg-zinc-700/90 
-            hover:text-red-700 dark:hover:text-red-400 
-            hover:scale-110 
-            transition-all duration-200 ease-in-out
-            shadow-lg"
-          aria-label="Next track"
-        >
-          <ArrowRight size={20} weight="bold" />
-        </button>
-      </div>
+    <div className="group relative hover:scale-[1.02] transition-transform duration-500 ease-out">
+      {/* Previous Arrow */}
+      <button
+        onClick={handlePrevious}
+        className={`
+          absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10
+          p-3 rounded-full bg-black/20 backdrop-blur-sm
+          text-white/70 hover:text-white
+          transition-all duration-200
+          opacity-0 group-hover:opacity-100
+          ${isTransitioning ? 'pointer-events-none' : ''}
+        `}
+        aria-label="Previous track"
+      >
+        <ArrowLeft size={20} />
+      </button>
+
+      {/* Next Arrow */}
+      <button
+        onClick={handleNext}
+        className={`
+          absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 z-10
+          p-3 rounded-full bg-black/20 backdrop-blur-sm
+          text-white/70 hover:text-white
+          transition-all duration-200
+          opacity-0 group-hover:opacity-100
+          ${isTransitioning ? 'pointer-events-none' : ''}
+        `}
+        aria-label="Next track"
+      >
+        <ArrowRight size={20} />
+      </button>
 
       <a
         href={currentTrack.trackUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="block relative overflow-hidden rounded-xl shadow-lg hover:scale-[1.02] transition-all duration-300"
+        className={`
+          block relative overflow-hidden rounded-xl shadow-lg 
+          transition-opacity duration-200
+          ${isTransitioning ? 'opacity-0' : 'opacity-100'}
+        `}
+        style={{
+          transition: 'opacity 200ms ease-in-out',
+        }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -237,11 +265,20 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
                 alt={`${currentTrack.track.name} album art`}
                 width={64}
                 height={64}
-                className="rounded-lg shadow-lg ring-1 ring-white/10"
+                priority
+                className={`
+                  rounded-lg shadow-lg ring-1 ring-white/10
+                  transition-opacity duration-300
+                  ${imageLoaded ? 'opacity-100' : 'opacity-0'}
+                `}
                 style={{
                   boxShadow: '0 8px 20px rgb(0 0 0 / 0.3)',
                 }}
+                onLoad={() => setImageLoaded(true)}
               />
+              {!imageLoaded && (
+                <div className="absolute inset-0 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse" />
+              )}
               <div 
                 className="absolute -bottom-12 left-0 right-0 h-12 blur-sm opacity-30"
                 style={{
