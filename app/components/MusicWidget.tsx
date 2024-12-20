@@ -257,7 +257,7 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
                   isNowPlaying={currentTrack.track['@attr']?.nowplaying === 'true'} 
                 />
               </span>
-              <span className="font-semibold text-lg leading-tight mt-0.5 drop-shadow-sm truncate max-w-[250px]">
+              <span className="font-semibold text-lg leading-tight mt-0.5 drop-shadow-sm truncate w-full max-w-[250px] sm:max-w-[250px] md:max-w-[300px] lg:max-w-[400px]">
                 {currentTrack.track.name}
               </span>
               <span className="text-sm mt-0.5 text-white/90">
