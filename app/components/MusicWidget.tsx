@@ -21,6 +21,7 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
   const currentTrack = tracks[trackIndex];
   const touchStartX = useRef<number | null>(null);
   const SWIPE_THRESHOLD = 50; // Minimum swipe distance to trigger navigation
+  const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const fetchMoreTracks = useCallback(async () => {
@@ -127,23 +128,59 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
     touchStartX.current = null;
   };
 
-  const preloadImages = useCallback((tracksToPreload: typeof tracks) => {
-    tracksToPreload.forEach(track => {
-      if (track?.albumArt) {
-        const img = new window.Image();
-        img.src = track.albumArt;
-      }
+  const preloadImage = useCallback((src: string) => {
+    if (!src) {
+      console.log('🚫 Skipping preload - No source provided');
+      return Promise.resolve();
+    }
+    
+    if (preloadedImages.has(src)) {
+      console.log('✅ Image already preloaded:', src);
+      return Promise.resolve();
+    }
+
+    console.log('🔄 Starting preload for:', src);
+    
+    return new Promise((resolve, reject) => {
+      const img = new window.Image();
+      img.onload = () => {
+        console.log('✅ Successfully preloaded:', src);
+        setPreloadedImages(prev => new Set(prev).add(src));
+        resolve(undefined);
+      };
+      img.onerror = (error) => {
+        console.error('❌ Failed to preload:', src, error);
+        reject(error);
+      };
+      img.src = src;
     });
-  }, []);
+  }, [preloadedImages]);
 
   useEffect(() => {
-    const nextTracks = tracks.slice(trackIndex + 1, trackIndex + PRELOAD_THRESHOLD);
-    preloadImages(nextTracks);
-  }, [trackIndex, tracks, preloadImages]);
+    const imagesToPreload = tracks
+      .slice(trackIndex, trackIndex + PRELOAD_THRESHOLD)
+      .map(track => track.albumArt)
+      .filter(Boolean);
+
+    console.log('🎵 Current track index:', trackIndex);
+    console.log('🖼️ Images to preload:', imagesToPreload);
+
+    Promise.all(imagesToPreload.map(src => preloadImage(src)))
+      .then(() => console.log('✨ Finished preloading batch of images'))
+      .catch(error => console.error('❌ Batch preload error:', error));
+  }, [trackIndex, tracks, preloadImage]);
 
   useEffect(() => {
     setImageLoaded(false);
-  }, [currentTrack.albumArt]);
+    console.log('🔄 Track changed to:', currentTrack.albumArt);
+    
+    if (preloadedImages.has(currentTrack.albumArt)) {
+      console.log('✅ Image found in preloaded cache, showing immediately');
+      setImageLoaded(true);
+    } else {
+      console.log('⏳ Waiting for image to load...');
+    }
+  }, [currentTrack.albumArt, preloadedImages]);
 
   return (
     <div className="group relative hover:scale-[1.02] transition-transform duration-500 ease-out">
@@ -277,7 +314,10 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
                 onLoad={() => setImageLoaded(true)}
               />
               {!imageLoaded && (
-                <div className="absolute inset-0 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse" />
+                <div 
+                  className="absolute inset-0 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse" 
+                  style={{ width: '64px', height: '64px' }}
+                />
               )}
               <div 
                 className="absolute -bottom-12 left-0 right-0 h-12 blur-sm opacity-30"
