@@ -10,6 +10,7 @@ interface VideoTooltipProps {
   videoWidth?: string;
   videoHeight?: string;
   isVertical?: boolean;
+  hasWebM?: boolean;
 }
 
 export default function VideoTooltip({ 
@@ -17,17 +18,25 @@ export default function VideoTooltip({
   videoSrc, 
   videoWidth = "200px", 
   videoHeight = "300px",
-  isVertical = true
+  isVertical = true,
+  hasWebM = false
 }: VideoTooltipProps) {
   const [isOpen, setIsOpen] = useState(false);
   const aspectRatio = isVertical ? "9/16" : "16/9";
-  
+
+  const renderVideoSources = () => (
+    <>
+      {hasWebM && <source src={videoSrc.replace('.mp4', '.webm')} type="video/webm" />}
+      <source src={videoSrc} type="video/mp4" />
+    </>
+  );
+
   return (
     <TooltipProvider>
       <Tooltip delayDuration={200}>
         <div className="relative">
           <TooltipTrigger 
-            className="transition-colors p-1 rounded-md hover:bg-gray-200 dark:hover:bg-red-900/30"
+            className="transition-colors p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-200/20"
             onClick={() => setIsOpen(true)}
           >
             {emoji}
@@ -43,8 +52,7 @@ export default function VideoTooltip({
               className="rounded-lg object-cover"
               style={{ width: videoWidth, height: videoHeight }}
             >
-              <source src={videoSrc.replace('.mp4', '.webm')} type="video/webm" />
-              <source src={videoSrc} type="video/mp4" />
+              {renderVideoSources()}
             </video>
           </TooltipContent>
           
@@ -80,8 +88,7 @@ export default function VideoTooltip({
                     aspectRatio
                   }}
                 >
-                  <source src={videoSrc.replace('.mp4', '.webm')} type="video/webm" />
-                  <source src={videoSrc} type="video/mp4" />
+                  {renderVideoSources()}
                 </video>
                 <button 
                   className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-transform duration-200 active:scale-90"

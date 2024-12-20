@@ -67,6 +67,7 @@ export default async function About() {
                       videoWidth="200px" 
                       videoHeight="300px" 
                       isVertical={true}
+                      hasWebM={false}
                     />
                     <VideoTooltip 
                       emoji="🎮" 
@@ -74,6 +75,7 @@ export default async function About() {
                       videoWidth="420px" 
                       videoHeight="250px" 
                       isVertical={false}
+                      hasWebM={false}
                     />
                     <VideoTooltip 
                       emoji="🎧" 
@@ -81,6 +83,7 @@ export default async function About() {
                       videoWidth="200px" 
                       videoHeight="300px" 
                       isVertical={true}
+                      hasWebM={false}
                     />
                     <VideoTooltip 
                       emoji="🏀" 
@@ -88,6 +91,7 @@ export default async function About() {
                       videoWidth="200px" 
                       videoHeight="300px" 
                       isVertical={true}
+                      hasWebM={true}
                     />
                     <VideoTooltip 
                       emoji="🐈" 
@@ -95,6 +99,7 @@ export default async function About() {
                       videoWidth="200px" 
                       videoHeight="300px" 
                       isVertical={true}
+                      hasWebM={true}
                     />
                   </div>
                   {/* Second Music Widget under bio */}

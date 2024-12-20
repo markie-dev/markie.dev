@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { ArrowRight, ArrowLeft } from '@phosphor-icons/react';
 import TrackTimestamp from './TrackTimestamp';
 import type { getTrackDetails } from '../actions/getTrackDetails';
 import Image from 'next/image';
+import { mix } from 'color2k';
 
 type MusicWidgetProps = {
   initialTracks: NonNullable<Awaited<ReturnType<typeof getTrackDetails>>>[];
@@ -23,6 +24,16 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const SWIPE_THRESHOLD = 50;
+  const [currentColors, setCurrentColors] = useState({
+    color1: initialTracks[0].color1,
+    color2: initialTracks[0].color2,
+    color3: initialTracks[0].color3,
+    color4: initialTracks[0].color4,
+    color5: initialTracks[0].color5,
+  });
+  const [colorProgress, setColorProgress] = useState(1);
+  const [previousColors, setPreviousColors] = useState(currentColors);
+  const animationRef = useRef<number | undefined>(undefined);
 
   const fetchMoreTracks = useCallback(async () => {
     if (isLoading || reachedEnd) {
@@ -84,12 +95,8 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
 
   const changeTrack = (newIndex: number) => {
     setIsTransitioning(true);
-    setTimeout(() => {
-      setTrackIndex(newIndex);
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 50);
-    }, 200);
+    setTrackIndex(newIndex);
+    setIsTransitioning(false);
   };
 
   const handlePrevious = (e: React.MouseEvent) => {
@@ -185,16 +192,68 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
   };
 
   const buttonBaseClasses = `
-    absolute top-1/2 -translate-y-1/2 z-10
-    p-3 rounded-full bg-black/20 backdrop-blur-sm
-    text-white/70 hover:text-white
-    transition-all duration-200
-    hidden md:block md:opacity-0 md:group-hover:opacity-100
-    ${isTransitioning ? 'pointer-events-none' : ''}
-  `;
+  absolute top-1/2 -translate-y-1/2 z-10
+  p-3 rounded-full 
+  bg-black/20 dark:bg-white/20 
+  backdrop-blur-sm
+  text-white/70 dark:text-black/70 
+  hover:text-white dark:hover:text-black
+  hidden md:block md:opacity-0 md:group-hover:opacity-100
+  transition-all duration-200 ease-in-out
+  ${isTransitioning ? 'pointer-events-none' : ''}
+`;
+
+  useEffect(() => {
+    setCurrentColors({
+      color1: currentTrack.color1,
+      color2: currentTrack.color2,
+      color3: currentTrack.color3,
+      color4: currentTrack.color4,
+      color5: currentTrack.color5,
+    });
+  }, [currentTrack]);
+
+  // Function to interpolate between colors
+  const interpolatedColors = useMemo(() => {
+    return {
+      color1: mix(previousColors.color1, currentColors.color1, colorProgress),
+      color2: mix(previousColors.color2, currentColors.color2, colorProgress),
+      color3: mix(previousColors.color3, currentColors.color3, colorProgress),
+      color4: mix(previousColors.color4, currentColors.color4, colorProgress),
+      color5: mix(previousColors.color5, currentColors.color5, colorProgress),
+    };
+  }, [previousColors, currentColors, colorProgress]);
+
+  // Handle color transitions when track changes
+  useEffect(() => {
+    setPreviousColors(interpolatedColors);
+    setColorProgress(0);
+    
+    const startTime = performance.now();
+    const duration = 400; // match this with your transition duration
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      setColorProgress(progress);
+      
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [currentTrack]);
 
   return (
-    <div className="group relative hover:scale-[1.02] transition-transform duration-500 ease-out">
+    <div className="group relative transition-transform duration-300 ease-out hover:scale-[1.02]">
       {/* Previous Arrow */}
       <button
         onClick={handlePrevious}
@@ -231,21 +290,18 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
           block relative overflow-hidden rounded-xl shadow-lg 
           ${isTransitioning ? 'opacity-0' : 'opacity-100'}
         `}
-        style={{
-          transition: 'opacity 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-        }}
       >
-        {/* Base gradient layer with multiple color stops */}
+        {/* Base gradient layer */}
         <div
           className="absolute inset-0"
           style={{
             backgroundImage: `linear-gradient(145deg, 
-              ${currentTrack.color1} 0%,
-              ${currentTrack.color2} 20%,
-              ${currentTrack.color3} 40%,
-              ${currentTrack.color4} 60%,
-              ${currentTrack.color5} 80%,
-              ${currentTrack.color1} 100%
+              ${interpolatedColors.color1} 0%,
+              ${interpolatedColors.color2} 20%,
+              ${interpolatedColors.color3} 40%,
+              ${interpolatedColors.color4} 60%,
+              ${interpolatedColors.color5} 80%,
+              ${interpolatedColors.color1} 100%
             )`,
             backgroundSize: '200% 200%',
             opacity: 0.85,
@@ -258,10 +314,10 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
           className="absolute inset-0 animate-gradient-fast"
           style={{
             backgroundImage: `
-              radial-gradient(circle at 0% 0%, ${currentTrack.color1}, transparent 50%),
-              radial-gradient(circle at 100% 0%, ${currentTrack.color3}, transparent 50%),
-              radial-gradient(circle at 100% 100%, ${currentTrack.color5}, transparent 50%),
-              radial-gradient(circle at 0% 100%, ${currentTrack.color2}, transparent 50%)
+              radial-gradient(circle at 0% 0%, ${interpolatedColors.color1}, transparent 50%),
+              radial-gradient(circle at 100% 0%, ${interpolatedColors.color3}, transparent 50%),
+              radial-gradient(circle at 100% 100%, ${interpolatedColors.color5}, transparent 50%),
+              radial-gradient(circle at 0% 100%, ${interpolatedColors.color2}, transparent 50%)
             `,
             backgroundSize: '200% 200%',
             mixBlendMode: 'soft-light',
@@ -274,8 +330,8 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
           className="absolute inset-0"
           style={{
             backgroundImage: `
-              radial-gradient(circle at 30% 20%, ${currentTrack.color4}, transparent 20%),
-              radial-gradient(circle at 70% 80%, ${currentTrack.color2}, transparent 20%)
+              radial-gradient(circle at 30% 20%, ${interpolatedColors.color4}, transparent 20%),
+              radial-gradient(circle at 70% 80%, ${interpolatedColors.color2}, transparent 20%)
             `,
             opacity: 0.4,
             mixBlendMode: 'overlay',
@@ -312,8 +368,7 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
                   ${imageLoaded ? 'opacity-100' : 'opacity-0'}
                 `}
                 style={{
-                  boxShadow: '0 8px 20px rgb(0 0 0 / 0.3)',
-                  transition: 'opacity 300ms ease-in-out',
+                  boxShadow: '0 8px 20px rgb(0 0 0 / 0.3)'
                 }}
                 onLoad={() => setImageLoaded(true)}
               />
@@ -326,7 +381,7 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
               <div 
                 className="absolute -bottom-12 left-0 right-0 h-12 blur-sm opacity-30"
                 style={{
-                  background: `linear-gradient(to bottom, ${currentTrack.color1}, transparent)`,
+                  background: `linear-gradient(to bottom, ${interpolatedColors.color1}, transparent)`,
                 }}
               />
             </div>
