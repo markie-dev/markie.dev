@@ -166,7 +166,8 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
     
     if (isDefaultArt || preloadedImages.has(currentTrack.albumArt)) {
       console.log('✅ Image found in preloaded cache or is default art, showing immediately');
-      setImageLoaded(true);
+      // Add a small delay to prevent flickering
+      setTimeout(() => setImageLoaded(true), 0);
     } else {
       console.log('⏳ Waiting for image to load...');
     }
@@ -404,6 +405,7 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
                 priority
                 className={`
                   rounded-lg shadow-lg ring-1 ring-white/10
+                  transition-opacity duration-200
                   ${imageLoaded ? 'opacity-100' : 'opacity-0'}
                 `}
                 style={{
@@ -411,7 +413,14 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
                   WebkitFontSmoothing: 'antialiased',
                   WebkitBackfaceVisibility: 'hidden'
                 }}
-                onLoad={() => setImageLoaded(true)}
+                onLoad={() => {
+                  console.log('✅ Image loaded:', currentTrack.albumArt);
+                  setImageLoaded(true);
+                }}
+                onError={() => {
+                  console.error('❌ Image failed to load:', currentTrack.albumArt);
+                  setImageLoaded(true); // Show the image anyway in case of error
+                }}
               />
               {!imageLoaded && (
                 <div 
