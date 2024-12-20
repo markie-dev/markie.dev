@@ -12,7 +12,7 @@ export async function getTrackDetails(trackIndex: number) {
   const track = data.recenttracks?.track?.[trackIndex];
   if (!track) return null;
 
-  const albumArt = track.image?.[3]?.['#text'] || '/default.webp';
+  const albumArt = track.image?.[3]?.['#text'] || 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png';
   const [color1, color2, color3, color4, color5] = await getTrackColors(albumArt);
   const trackUrl = track.url;
   return { track, color1, color2, color3, color4, color5, trackUrl, albumArt };

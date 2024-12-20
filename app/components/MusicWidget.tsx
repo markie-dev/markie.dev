@@ -250,14 +250,14 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
               />
             </div>
 
-            <div className="flex flex-col text-white">
+            <div className="flex flex-col text-white min-w-0 flex-1">
               <span className="text-sm font-medium opacity-90 text-white/80">
                 <TrackTimestamp 
                   date={currentTrack.track.date} 
                   isNowPlaying={currentTrack.track['@attr']?.nowplaying === 'true'} 
                 />
               </span>
-              <span className="font-semibold text-lg leading-tight mt-0.5 drop-shadow-sm">
+              <span className="font-semibold text-lg leading-tight mt-0.5 drop-shadow-sm truncate max-w-[250px]">
                 {currentTrack.track.name}
               </span>
               <span className="text-sm mt-0.5 text-white/90">
