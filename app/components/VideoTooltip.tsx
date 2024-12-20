@@ -43,6 +43,7 @@ export default function VideoTooltip({
               className="rounded-lg object-cover"
               style={{ width: videoWidth, height: videoHeight }}
             >
+              <source src={videoSrc.replace('.mp4', '.webm')} type="video/webm" />
               <source src={videoSrc} type="video/mp4" />
             </video>
           </TooltipContent>
@@ -79,6 +80,7 @@ export default function VideoTooltip({
                     aspectRatio
                   }}
                 >
+                  <source src={videoSrc.replace('.mp4', '.webm')} type="video/webm" />
                   <source src={videoSrc} type="video/mp4" />
                 </video>
                 <button 
