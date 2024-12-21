@@ -61,10 +61,24 @@ const Navbar = () => {
   const scrollToProjects = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     
-    const isAboutPage = window.location.pathname.includes('/about');
+    const isAboutPage = pathname.includes('/about');
     
     if (isAboutPage) {
-      window.location.href = '/#projects';
+      await router.push('/#projects');
+      
+      setTimeout(() => {
+        const projectsSection = document.getElementById('projects');
+        if (projectsSection) {
+          const navbar = document.querySelector('nav');
+          const navbarHeight = navbar ? navbar.offsetHeight : 0;
+          const offsetPosition = projectsSection.offsetTop - navbarHeight + 24;
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
       return;
     }
     
