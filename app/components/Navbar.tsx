@@ -61,6 +61,13 @@ const Navbar = () => {
   const scrollToProjects = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     
+    const isAboutPage = window.location.pathname.includes('/about');
+    
+    if (isAboutPage) {
+      window.location.href = '/#projects';
+      return;
+    }
+    
     const scrollWithOffset = (retryCount = 0) => {
       const projectsSection = document.getElementById('projects');
       if (!projectsSection) {
@@ -104,12 +111,7 @@ const Navbar = () => {
       }, 300);
     };
 
-    if (pathname !== '/') {
-      await router.push('/');
-      scrollWithOffset();
-    } else {
-      scrollWithOffset();
-    }
+    scrollWithOffset();
   };
 
   const scrollToTop = async (e: React.MouseEvent<HTMLAnchorElement>) => {
