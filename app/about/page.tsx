@@ -1,5 +1,3 @@
-'use server';
-
 import { Suspense } from 'react';
 import Image from "next/image";
 import Footer from "../components/Footer";
@@ -7,6 +5,9 @@ import MusicWidget from "../components/MusicWidget";
 import { Skeleton } from "@/components/ui/skeleton"
 import VideoTooltip from "../components/VideoTooltip";
 import { getTrackDetails } from '../actions/getTrackDetails';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 async function getInitialTracks() {
   const tracks = await Promise.all(
@@ -20,8 +21,9 @@ async function getInitialTracks() {
       const imageUrl = track.albumArt === '/default.webp' ? '/default.webp' : track.albumArt;
       try {
         const res = await fetch(imageUrl, { 
-          method: 'HEAD',  // First check the size
-          cache: 'force-cache' 
+          method: 'HEAD',
+          cache: 'no-store',
+          next: { revalidate: 0 }
         });
         
         if (!res.ok) {
@@ -52,7 +54,7 @@ async function getInitialTracks() {
 }
 
 export default async function About() {
-  const tracks = await getInitialTracks();
+  const initialTracks = await getInitialTracks();
 
   return (
     <Suspense fallback={
@@ -139,7 +141,7 @@ export default async function About() {
                   {/* Second Music Widget under bio */}
                   <div className="hidden lg:block mt-8">
                     <div className="relative z-10 h-[120px]">
-                      <MusicWidget initialTracks={tracks} />
+                      <MusicWidget initialTracks={initialTracks} />
                     </div>
                   </div>
                 </div>
@@ -149,7 +151,7 @@ export default async function About() {
             {/* Mobile Music Widgets with fixed height */}
             <div className="lg:hidden mt-8 flex flex-col gap-4 h-[120px]">
               <div className="relative z-10 h-full">
-                <MusicWidget initialTracks={tracks} />
+                <MusicWidget initialTracks={initialTracks} />
               </div>
             </div>
           </div>
