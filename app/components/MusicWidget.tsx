@@ -13,10 +13,13 @@ type MusicWidgetProps = {
   initialTracks: NonNullable<Awaited<ReturnType<typeof getTrackDetails>>>[];
 }
 
+// Module-level flag to prevent multiple fetches across remounts
+let hasFetchedGlobally = false;
+
 export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [trackIndex, setTrackIndex] = useState(0);
-  const [tracks] = useState(initialTracks);
+  const [tracks, setTracks] = useState(initialTracks);
   const [reachedEnd] = useState(false);
   const ENABLE_BLUR_EFFECTS = true;
   const currentTrack = tracks[trackIndex];
@@ -34,6 +37,9 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
   const [previousColors, setPreviousColors] = useState(currentColors);
   const animationRef = useRef<number | undefined>(undefined);
   const [isHovering, setIsHovering] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const fetchControllerRef = useRef<AbortController | null>(null);
+  const fetchPromiseRef = useRef<Promise<any> | null>(null);
 
   const DEFAULT_ALBUM_ART = defaultAlbumArt.src;
 
@@ -157,6 +163,56 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
     backfaceVisibility: 'hidden',
     WebkitBackfaceVisibility: 'hidden'
   } : {};
+
+  // Fetch remaining tracks only once
+  useEffect(() => {
+    if (hasFetchedGlobally || initialTracks.length >= 50) {
+      console.log('🔄 Client: Skipping fetch - already done or have all tracks');
+      return;
+    }
+
+    hasFetchedGlobally = true; // Set this immediately to prevent other instances from fetching
+
+    const controller = new AbortController();
+    fetchControllerRef.current = controller;
+
+    const fetchRemainingTracks = async () => {
+      if (controller.signal.aborted) return;
+
+      console.log('🎵 Client: Fetching remaining tracks');
+      try {
+        setIsLoading(true);
+        const res = await fetch(`/api/tracks?start=${initialTracks.length}&end=50`, {
+          signal: controller.signal,
+          cache: 'no-store'
+        });
+        
+        if (!res.ok) throw new Error('Failed to fetch remaining tracks');
+        const remainingTracks = await res.json();
+        
+        if (!controller.signal.aborted) {
+          setTracks(prev => [...prev, ...remainingTracks]);
+          console.log(`✅ Client: Got ${remainingTracks.length} additional tracks`);
+        }
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          console.log('🛑 Client: Fetch aborted');
+          return;
+        }
+        console.error('❌ Client: Error fetching remaining tracks:', error);
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchRemainingTracks();
+
+    return () => {
+      controller.abort();
+    };
+  }, []); // Empty dependency array
 
   return (
     <div 

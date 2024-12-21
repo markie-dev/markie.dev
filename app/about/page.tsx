@@ -10,45 +10,13 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 async function getInitialTracks() {
+  console.log('🎵 Server: Fetching initial tracks');
   const tracks = await Promise.all(
-    Array.from({ length: 50 }, (_, i) => getTrackDetails(i))
+    Array.from({ length: 5 }, (_, i) => getTrackDetails(i))
   );
   
   const validTracks = tracks.filter((track): track is NonNullable<typeof track> => track !== null);
-  
-  await Promise.all(
-    validTracks.map(async track => {
-      const imageUrl = track.albumArt === '/default.webp' ? '/default.webp' : track.albumArt;
-      try {
-        const res = await fetch(imageUrl, { 
-          method: 'HEAD',
-          cache: 'no-store',
-          next: { revalidate: 0 }
-        });
-        
-        if (!res.ok) {
-          console.error(`❌ Failed to check image: ${imageUrl}`);
-          return;
-        }
-
-        const size = parseInt(res.headers.get('content-length') || '0');
-        
-        // Only cache if under 2MB
-        if (size > 0 && size < 2 * 1024 * 1024) {
-          console.log(`📥 Pre-caching image (${(size/1024).toFixed(1)}KB): ${imageUrl}`);
-          const fullRes = await fetch(imageUrl, { cache: 'force-cache' });
-          if (fullRes.ok) {
-            await fullRes.blob();
-            console.log(`✅ Successfully cached: ${imageUrl}`);
-          }
-        } else {
-          console.log(`⚠️ Skipping large image cache (${(size/1024/1024).toFixed(1)}MB): ${imageUrl}`);
-        }
-      } catch (error) {
-        console.error(`❌ Error preloading image: ${imageUrl}`, error);
-      }
-    })
-  );
+  console.log(`✅ Server: Got ${validTracks.length} initial tracks`);
   
   return validTracks;
 }

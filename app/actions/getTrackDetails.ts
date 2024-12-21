@@ -14,7 +14,7 @@ export async function getTrackDetails(trackIndex: number) {
 
   const albumArt = track.image?.[3]?.['#text'] || '/default.webp';
   
-  // Get colors and attempt to get base64 image
+  // Get colors and convert image to base64
   const [colors, base64Image] = await Promise.all([
     getTrackColors(albumArt),
     (async () => {
@@ -23,8 +23,8 @@ export async function getTrackDetails(trackIndex: number) {
         if (!imageRes.ok) return null;
         
         const contentLength = parseInt(imageRes.headers.get('content-length') || '0');
-        // Only convert to base64 if under 1MB to keep the initial payload reasonable
-        if (contentLength && contentLength < 1024 * 1024) {
+        // Increased size limit to 2MB
+        if (contentLength && contentLength < 2 * 1024 * 1024) {
           const buffer = Buffer.from(await imageRes.arrayBuffer());
           const contentType = imageRes.headers.get('content-type') || 'image/jpeg';
           return `data:${contentType};base64,${buffer.toString('base64')}`;
