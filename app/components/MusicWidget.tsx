@@ -16,30 +16,43 @@ type MusicWidgetProps = {
 // Module-level flag to prevent multiple fetches across remounts
 let hasFetchedGlobally = false;
 
+// Move these outside the component to avoid recreation
+const buttonBaseClasses = `
+  absolute top-1/2 -translate-y-1/2 z-10
+  p-3 rounded-full 
+  bg-black/20 dark:bg-white/20 
+  backdrop-blur-sm
+  text-white/70 dark:text-black/70 
+  hover:text-white dark:hover:text-black
+  hidden md:block md:opacity-0 md:group-hover:opacity-100
+`;
+
+const SWIPE_THRESHOLD = 50;
+const ENABLE_BLUR_EFFECTS = true;
+
 export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [trackIndex, setTrackIndex] = useState(0);
+  // Add this near the top with other refs
+  const fetchControllerRef = useRef<AbortController | null>(null);
+  
+  // Optimize initial state
   const [tracks, setTracks] = useState(initialTracks);
-  const [reachedEnd] = useState(false);
-  const ENABLE_BLUR_EFFECTS = true;
+  const [trackIndex, setTrackIndex] = useState(0);
   const currentTrack = tracks[trackIndex];
+  
+  // Lazy initialize these states
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const touchStartX = useRef<number | null>(null);
-  const SWIPE_THRESHOLD = 50;
-  const [currentColors, setCurrentColors] = useState({
+  const [isHovering, setIsHovering] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Lazy initialize colors
+  const [currentColors, setCurrentColors] = useState(() => ({
     color1: initialTracks[0].color1,
     color2: initialTracks[0].color2,
     color3: initialTracks[0].color3,
     color4: initialTracks[0].color4,
     color5: initialTracks[0].color5,
-  });
-  const [colorProgress, setColorProgress] = useState(1);
-  const [previousColors, setPreviousColors] = useState(currentColors);
-  const animationRef = useRef<number | undefined>(undefined);
-  const [isHovering, setIsHovering] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const fetchControllerRef = useRef<AbortController | null>(null);
-  const fetchPromiseRef = useRef<Promise<any> | null>(null);
+  }));
 
   const DEFAULT_ALBUM_ART = defaultAlbumArt.src;
 
@@ -89,26 +102,10 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
     touchStartX.current = null;
   };
 
-  const buttonBaseClasses = `
-  absolute top-1/2 -translate-y-1/2 z-10
-  p-3 rounded-full 
-  bg-black/20 dark:bg-white/20 
-  backdrop-blur-sm
-  text-white/70 dark:text-black/70 
-  hover:text-white dark:hover:text-black
-  hidden md:block md:opacity-0 md:group-hover:opacity-100
-  ${isTransitioning ? 'pointer-events-none' : ''}
-`;
-
-  useEffect(() => {
-    setCurrentColors({
-      color1: currentTrack.color1,
-      color2: currentTrack.color2,
-      color3: currentTrack.color3,
-      color4: currentTrack.color4,
-      color5: currentTrack.color5,
-    });
-  }, [currentTrack]);
+  const [colorProgress, setColorProgress] = useState(1);
+  const [previousColors, setPreviousColors] = useState(currentColors);
+  const animationRef = useRef<number | undefined>(undefined);
+  const touchStartX = useRef<number | null>(null);
 
   // Function to interpolate between colors
   const interpolatedColors = useMemo(() => {
@@ -123,6 +120,15 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
 
   // Handle color transitions when track changes
   useEffect(() => {
+    // Update colors when track changes
+    setCurrentColors({
+      color1: currentTrack.color1,
+      color2: currentTrack.color2,
+      color3: currentTrack.color3,
+      color4: currentTrack.color4,
+      color5: currentTrack.color5,
+    });
+
     setPreviousColors(interpolatedColors);
     setColorProgress(0);
     
