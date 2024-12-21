@@ -65,67 +65,28 @@ const Navbar = () => {
     
     if (isAboutPage) {
       await router.push('/#projects');
-      
-      setTimeout(() => {
-        const projectsSection = document.getElementById('projects');
-        if (projectsSection) {
-          const navbar = document.querySelector('nav');
-          const navbarHeight = navbar ? navbar.offsetHeight : 0;
-          const offsetPosition = projectsSection.offsetTop - navbarHeight + 24;
-          
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth'
-          });
-        }
-      }, 100);
-      return;
     }
     
-    const scrollWithOffset = (retryCount = 0) => {
+    const scrollToSection = (retryCount = 0) => {
       const projectsSection = document.getElementById('projects');
       if (!projectsSection) {
         if (retryCount < 20) {
-          setTimeout(() => scrollWithOffset(retryCount + 1), 100);
+          setTimeout(() => scrollToSection(retryCount + 1), 100);
         }
         return;
       }
 
-      setTimeout(() => {
-        const navbar = document.querySelector('nav');
-        const navbarHeight = navbar ? navbar.offsetHeight : 0;
-        
-        const offsetPosition = projectsSection.offsetTop - navbarHeight + 24;
-        
-        const start = window.scrollY;
-        const distance = offsetPosition - start;
-        const duration = 800;
-        let startTime: number | null = null;
-
-        const animation = (currentTime: number) => {
-          if (startTime === null) startTime = currentTime;
-          const timeElapsed = currentTime - startTime;
-          const progress = Math.min(timeElapsed / duration, 1);
-
-          const ease = (t: number) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-          const currentPosition = start + distance * ease(progress);
-          
-          window.scrollTo(0, currentPosition);
-
-          if (progress < 1) {
-            requestAnimationFrame(animation);
-          } else {
-            setTimeout(() => {
-              window.scrollTo(0, offsetPosition);
-            }, 50);
-          }
-        };
-
-        requestAnimationFrame(animation);
-      }, 300);
+      const navbar = document.querySelector('nav');
+      const navbarHeight = navbar ? navbar.offsetHeight : 0;
+      const offsetPosition = projectsSection.offsetTop - navbarHeight + 24;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
     };
 
-    scrollWithOffset();
+    setTimeout(scrollToSection, isAboutPage ? 100 : 0);
   };
 
   const scrollToTop = async (e: React.MouseEvent<HTMLAnchorElement>) => {
