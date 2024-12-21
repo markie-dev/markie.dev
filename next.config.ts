@@ -42,6 +42,19 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        source: '/:path*.pdf',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/pdf',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
     ];
   },
   experimental: {
