@@ -164,14 +164,14 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
     WebkitBackfaceVisibility: 'hidden'
   } : {};
 
-  // Fetch remaining tracks only once
+  // Fetch remaining tracks immediately
   useEffect(() => {
-    if (hasFetchedGlobally || initialTracks.length >= 50) {
+    if (hasFetchedGlobally || tracks.length >= 50) {
       console.log('🔄 Client: Skipping fetch - already done or have all tracks');
       return;
     }
 
-    hasFetchedGlobally = true; // Set this immediately to prevent other instances from fetching
+    hasFetchedGlobally = true;
 
     const controller = new AbortController();
     fetchControllerRef.current = controller;
@@ -182,17 +182,33 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
       console.log('🎵 Client: Fetching remaining tracks');
       try {
         setIsLoading(true);
-        const res = await fetch(`/api/tracks?start=${initialTracks.length}&end=50`, {
-          signal: controller.signal,
-          cache: 'no-store'
-        });
         
-        if (!res.ok) throw new Error('Failed to fetch remaining tracks');
-        const remainingTracks = await res.json();
-        
-        if (!controller.signal.aborted) {
-          setTracks(prev => [...prev, ...remainingTracks]);
-          console.log(`✅ Client: Got ${remainingTracks.length} additional tracks`);
+        // Fetch in smaller chunks for better perceived performance
+        const chunks = [
+          { start: tracks.length, end: tracks.length + 8 },  // First 8
+          { start: tracks.length + 8, end: 50 }             // Rest
+        ];
+
+        for (const chunk of chunks) {
+          if (controller.signal.aborted) break;
+          
+          const res = await fetch(`/api/tracks?start=${chunk.start}&end=${chunk.end}`, {
+            signal: controller.signal,
+            cache: 'no-store'
+          });
+          
+          if (!res.ok) throw new Error('Failed to fetch tracks');
+          const newTracks = await res.json();
+          
+          if (!controller.signal.aborted) {
+            setTracks(prev => [...prev, ...newTracks]);
+            console.log(`✅ Client: Got ${newTracks.length} additional tracks (${chunk.start}-${chunk.end})`);
+          }
+
+          // Small delay between chunks to prevent overwhelming
+          if (chunks.indexOf(chunk) < chunks.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
         }
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
@@ -212,7 +228,7 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
     return () => {
       controller.abort();
     };
-  }, []); // Empty dependency array
+  }, []);
 
   return (
     <div 
