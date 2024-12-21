@@ -13,9 +13,6 @@ type MusicWidgetProps = {
   initialTracks: NonNullable<Awaited<ReturnType<typeof getTrackDetails>>>[];
 }
 
-// Module-level flag to prevent multiple fetches across remounts
-let hasFetchedGlobally = false;
-
 // Move these outside the component to avoid recreation
 const buttonBaseClasses = `
   absolute top-1/2 -translate-y-1/2 z-10
@@ -33,6 +30,7 @@ const ENABLE_BLUR_EFFECTS = true;
 export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
   // Add this near the top with other refs
   const fetchControllerRef = useRef<AbortController | null>(null);
+  const isFetchingRef = useRef(false);
   
   // Optimize initial state
   const [tracks, setTracks] = useState(initialTracks);
@@ -170,52 +168,65 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
     WebkitBackfaceVisibility: 'hidden'
   } : {};
 
-  // Fetch remaining tracks immediately
+  // Add this near other state declarations
+  const [hasFetched, setHasFetched] = useState(() => {
+    // Check localStorage on component mount
+    if (typeof window === 'undefined') return false;
+    const lastFetchTime = localStorage.getItem('lastMusicFetch');
+    if (!lastFetchTime) return false;
+    
+    // Consider fetch valid for 5 minutes
+    const FETCH_VALIDITY = 5 * 60 * 1000; // 5 minutes in milliseconds
+    const isValid = Date.now() - parseInt(lastFetchTime) < FETCH_VALIDITY;
+    
+    // Only consider it fetched if we actually have the tracks
+    return isValid && tracks.length >= 50;
+  });
+
+  // Modify the fetch effect
   useEffect(() => {
-    if (hasFetchedGlobally || tracks.length >= 50) {
+    if (hasFetched || tracks.length >= 50 || isFetchingRef.current) {
       console.log('🔄 Client: Skipping fetch - already done or have all tracks');
       return;
     }
 
-    hasFetchedGlobally = true;
-
-    const controller = new AbortController();
-    fetchControllerRef.current = controller;
-
     const fetchRemainingTracks = async () => {
-      if (controller.signal.aborted) return;
+      if (hasFetched || tracks.length >= 50 || isFetchingRef.current) return;
 
+      isFetchingRef.current = true;
       console.log('🎵 Client: Fetching remaining tracks');
+      
       try {
         setIsLoading(true);
         
-        // Fetch in smaller chunks for better perceived performance
-        const chunks = [
-          { start: tracks.length, end: tracks.length + 8 },  // First 8
-          { start: tracks.length + 8, end: 50 }             // Rest
-        ];
+        let currentStart = tracks.length;
+        const CHUNK_SIZE = 8;
 
-        for (const chunk of chunks) {
-          if (controller.signal.aborted) break;
+        while (currentStart < 50) {
+          const chunkEnd = Math.min(currentStart + CHUNK_SIZE, 50);
           
-          const res = await fetch(`/api/tracks?start=${chunk.start}&end=${chunk.end}`, {
-            signal: controller.signal,
+          const res = await fetch(`/api/tracks?start=${currentStart}&end=${chunkEnd}`, {
+            signal: fetchControllerRef.current?.signal,
             cache: 'no-store'
           });
           
           if (!res.ok) throw new Error('Failed to fetch tracks');
           const newTracks = await res.json();
           
-          if (!controller.signal.aborted) {
-            setTracks(prev => [...prev, ...newTracks]);
-            console.log(`✅ Client: Got ${newTracks.length} additional tracks (${chunk.start}-${chunk.end})`);
-          }
+          setTracks(prev => [...prev, ...newTracks]);
+          console.log(`✅ Client: Got ${newTracks.length} additional tracks (${currentStart}-${chunkEnd})`);
 
-          // Small delay between chunks to prevent overwhelming
-          if (chunks.indexOf(chunk) < chunks.length - 1) {
+          currentStart = chunkEnd;
+
+          // Small delay between chunks
+          if (currentStart < 50) {
             await new Promise(resolve => setTimeout(resolve, 100));
           }
         }
+
+        // After successful fetch, update localStorage
+        localStorage.setItem('lastMusicFetch', Date.now().toString());
+        setHasFetched(true);
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
           console.log('🛑 Client: Fetch aborted');
@@ -223,18 +234,17 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
         }
         console.error('❌ Client: Error fetching remaining tracks:', error);
       } finally {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
+        setIsLoading(false);
+        isFetchingRef.current = false;
       }
     };
 
     fetchRemainingTracks();
 
     return () => {
-      controller.abort();
+      fetchControllerRef.current?.abort();
     };
-  }, []);
+  }, [hasFetched, tracks.length]); // Add hasFetched to dependencies
 
   return (
     <div 
