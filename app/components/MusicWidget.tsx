@@ -287,7 +287,13 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
             {/* Album art */}
             <div className="relative shrink-0">
               <Image
-                src={currentTrack.albumArt === '/default.webp' ? DEFAULT_ALBUM_ART : currentTrack.albumArt}
+                src={
+                  currentTrack.base64Image 
+                    ? currentTrack.base64Image 
+                    : currentTrack.albumArt === '/default.webp' 
+                      ? DEFAULT_ALBUM_ART 
+                      : currentTrack.albumArt
+                }
                 alt={`${currentTrack.track.name} album art`}
                 width={64}
                 height={64}
@@ -304,7 +310,13 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
                 onLoad={(e) => {
                   const fromCache = (e.target as HTMLImageElement).complete && 
                     ((e.target as HTMLImageElement).naturalWidth > 0 || performance.now() < 100);
-                  console.log(`🖼️ Image loaded for "${currentTrack.track.name}": ${fromCache ? '(from cache)' : '(downloaded)'}`);
+                  console.log(`🖼️ Image loaded for "${currentTrack.track.name}": ${
+                    currentTrack.base64Image 
+                      ? '(base64)' 
+                      : fromCache 
+                        ? '(from cache)' 
+                        : '(downloaded)'
+                  }`);
                   setImageLoaded(true);
                 }}
                 onError={() => {
