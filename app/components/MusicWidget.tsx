@@ -16,13 +16,10 @@ type MusicWidgetProps = {
 export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [trackIndex, setTrackIndex] = useState(0);
-  const [tracks, setTracks] = useState(initialTracks);
-  const [isLoading, setIsLoading] = useState(false);
-  const [reachedEnd, setReachedEnd] = useState(false);
+  const [tracks] = useState(initialTracks);
+  const [reachedEnd] = useState(false);
   const ENABLE_BLUR_EFFECTS = true;
-  const PRELOAD_THRESHOLD = 3; // Reduced since we know the limit
   const currentTrack = tracks[trackIndex];
-  const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
   const [imageLoaded, setImageLoaded] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const SWIPE_THRESHOLD = 50;
@@ -39,64 +36,6 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
   const [isHovering, setIsHovering] = useState(false);
 
   const DEFAULT_ALBUM_ART = defaultAlbumArt.src;
-
-  const fetchMoreTracks = useCallback(async () => {
-    if (isLoading || reachedEnd) {
-      return;
-    }
-    setIsLoading(true);
-    
-    try {
-      const nextIndex = tracks.length;
-      
-      const fetchPromises = Array.from({ length: PRELOAD_THRESHOLD }, (_, i) => {
-        const index = nextIndex + i;
-        if (index >= 50) {
-          return Promise.resolve(null);
-        }
-        
-        const timeLabel = `track-${index}`;
-        
-        return fetch(`/api/tracks?index=${index}`)
-          .then(async res => {
-            if (res.status === 404) {
-              setReachedEnd(true);
-              return null;
-            }
-            return res.json();
-          })
-          .then(track => {
-            return track;
-          })
-          .catch(error => {
-            console.error(`Failed to fetch track ${index}:`, error);
-            return null;
-          });
-      });
-
-      const newTracks = await Promise.all(fetchPromises);
-      const validTracks = newTracks.filter(track => track !== null);
-      
-      if (validTracks.length === 0) {
-        setReachedEnd(true);
-        return;
-      }
-      
-      setTracks(prev => [...prev, ...validTracks]);
-    } catch (error) {
-      console.error('Failed to fetch more tracks:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [tracks.length, isLoading, reachedEnd]);
-
-  useEffect(() => {
-    const remainingTracks = tracks.length - trackIndex;
-    
-    if (remainingTracks <= PRELOAD_THRESHOLD && !reachedEnd) {
-      fetchMoreTracks();
-    }
-  }, [trackIndex, tracks.length, fetchMoreTracks, reachedEnd]);
 
   const changeTrack = (newIndex: number) => {
     setIsTransitioning(true);
@@ -118,64 +57,10 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
     changeTrack(newIndex);
   };
 
-  const preloadImage = useCallback((src: string) => {
-    const imageUrl = src === '/default.webp' ? DEFAULT_ALBUM_ART : src;
-    
-    if (!imageUrl) {
-      console.log('🚫 Skipping preload - No source provided');
-      return Promise.resolve();
-    }
-    
-    if (preloadedImages.has(imageUrl)) {
-      console.log('✅ Image already preloaded:', imageUrl);
-      return Promise.resolve();
-    }
-
-    console.log('🔄 Starting preload for:', imageUrl);
-    
-    return new Promise((resolve, reject) => {
-      const img = new window.Image();
-      img.onload = () => {
-        console.log('✅ Successfully preloaded:', imageUrl);
-        setPreloadedImages(prev => new Set(prev).add(imageUrl));
-        resolve(undefined);
-      };
-      img.onerror = (error) => {
-        console.error('❌ Failed to preload:', imageUrl, error);
-        reject(error);
-      };
-      img.src = imageUrl;
-    });
-  }, [preloadedImages]);
-
-  useEffect(() => {
-    const imagesToPreload = tracks
-      .slice(trackIndex, trackIndex + PRELOAD_THRESHOLD)
-      .map(track => track.albumArt)
-      .filter(Boolean);
-
-    console.log('🎵 Current track index:', trackIndex);
-    console.log('🖼️ Images to preload:', imagesToPreload);
-
-    Promise.all(imagesToPreload.map(src => preloadImage(src)))
-      .then(() => console.log('✨ Finished preloading batch of images'))
-      .catch(error => console.error('❌ Batch preload error:', error));
-  }, [trackIndex, tracks, preloadImage]);
-
   useEffect(() => {
     setImageLoaded(false);
-    console.log('🔄 Track changed to:', currentTrack.albumArt);
-    
-    // Check if it's the default album art
-    const isDefaultArt = currentTrack.albumArt === '/default.webp';
-    
-    if (isDefaultArt || preloadedImages.has(currentTrack.albumArt)) {
-      console.log('✅ Image found in preloaded cache or is default art, showing immediately');
-      setImageLoaded(true);
-    } else {
-      console.log('⏳ Waiting for image to load...');
-    }
-  }, [currentTrack.albumArt, preloadedImages]);
+    setImageLoaded(true);
+  }, [currentTrack.albumArt]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -416,8 +301,10 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
                   WebkitFontSmoothing: 'antialiased',
                   WebkitBackfaceVisibility: 'hidden'
                 }}
-                onLoad={() => {
-                  console.log('✅ Image loaded:', currentTrack.albumArt);
+                onLoad={(e) => {
+                  const fromCache = (e.target as HTMLImageElement).complete && 
+                    ((e.target as HTMLImageElement).naturalWidth > 0 || performance.now() < 100);
+                  console.log(`🖼️ Image loaded for "${currentTrack.track.name}": ${fromCache ? '(from cache)' : '(downloaded)'}`);
                   setImageLoaded(true);
                 }}
                 onError={() => {

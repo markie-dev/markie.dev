@@ -9,12 +9,46 @@ import VideoTooltip from "../components/VideoTooltip";
 import { getTrackDetails } from '../actions/getTrackDetails';
 
 async function getInitialTracks() {
-  const tracks = await Promise.all([
-    getTrackDetails(0),
-    getTrackDetails(1),
-    getTrackDetails(2),
-  ]);
-  return tracks.filter((track): track is NonNullable<typeof track> => track !== null);
+  const tracks = await Promise.all(
+    Array.from({ length: 50 }, (_, i) => getTrackDetails(i))
+  );
+  
+  const validTracks = tracks.filter((track): track is NonNullable<typeof track> => track !== null);
+  
+  await Promise.all(
+    validTracks.map(async track => {
+      const imageUrl = track.albumArt === '/default.webp' ? '/default.webp' : track.albumArt;
+      try {
+        const res = await fetch(imageUrl, { 
+          method: 'HEAD',  // First check the size
+          cache: 'force-cache' 
+        });
+        
+        if (!res.ok) {
+          console.error(`❌ Failed to check image: ${imageUrl}`);
+          return;
+        }
+
+        const size = parseInt(res.headers.get('content-length') || '0');
+        
+        // Only cache if under 2MB
+        if (size > 0 && size < 2 * 1024 * 1024) {
+          console.log(`📥 Pre-caching image (${(size/1024).toFixed(1)}KB): ${imageUrl}`);
+          const fullRes = await fetch(imageUrl, { cache: 'force-cache' });
+          if (fullRes.ok) {
+            await fullRes.blob();
+            console.log(`✅ Successfully cached: ${imageUrl}`);
+          }
+        } else {
+          console.log(`⚠️ Skipping large image cache (${(size/1024/1024).toFixed(1)}MB): ${imageUrl}`);
+        }
+      } catch (error) {
+        console.error(`❌ Error preloading image: ${imageUrl}`, error);
+      }
+    })
+  );
+  
+  return validTracks;
 }
 
 export default async function About() {
