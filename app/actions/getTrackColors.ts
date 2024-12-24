@@ -2,7 +2,9 @@
 
 import { createCanvas, loadImage } from '@napi-rs/canvas';
 
-export async function getTrackColors(imageUrl: string): Promise<[string, string, string, string, string]> {
+export async function getTrackColors(imageUrl: string) {
+  if (!imageUrl) return null;
+
   const defaultColors: [string, string, string, string, string] = [
     'rgb(58, 58, 58)',
     'rgb(78, 78, 78)',
@@ -12,7 +14,12 @@ export async function getTrackColors(imageUrl: string): Promise<[string, string,
   ];
 
   try {
-    const response = await fetch(imageUrl);
+    // Ensure the URL is absolute
+    const fullUrl = imageUrl.startsWith('http') 
+      ? imageUrl 
+      : new URL(imageUrl, process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000').toString();
+    
+    const response = await fetch(fullUrl);
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     
@@ -65,6 +72,6 @@ export async function getTrackColors(imageUrl: string): Promise<[string, string,
     
   } catch (error) {
     console.error('Error extracting colors:', error);
-    return defaultColors;
+    return null;
   }
 }

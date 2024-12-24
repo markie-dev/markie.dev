@@ -24,7 +24,17 @@ export async function GET(request: NextRequest) {
       currentFetch.key === cacheKey && 
       Date.now() - currentFetch.timestamp < CACHE_DURATION) {
     console.log(`🔄 API: Returning cached tracks ${start}-${end}`);
-    return Response.json(await currentFetch.promise);
+    const response = new Response(
+      JSON.stringify(await currentFetch.promise),
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          // Cache for 1 minute, but allow serving stale data for up to 1 hour while revalidating
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=3600',
+        },
+      }
+    );
+    return response;
   }
 
   // Create new fetch promise
@@ -54,7 +64,17 @@ export async function GET(request: NextRequest) {
 
   try {
     const data = await fetchPromise;
-    return Response.json(data);
+    const response = new Response(
+      JSON.stringify(data),
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          // Cache for 1 minute, but allow serving stale data for up to 1 hour while revalidating
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=3600',
+        },
+      }
+    );
+    return response;
   } catch (error) {
     return new Response('Error fetching tracks', { status: 500 });
   }

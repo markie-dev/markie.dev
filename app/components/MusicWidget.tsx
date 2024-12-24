@@ -108,11 +108,11 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
   // Function to interpolate between colors
   const interpolatedColors = useMemo(() => {
     return {
-      color1: mix(previousColors.color1, currentColors.color1, colorProgress),
-      color2: mix(previousColors.color2, currentColors.color2, colorProgress),
-      color3: mix(previousColors.color3, currentColors.color3, colorProgress),
-      color4: mix(previousColors.color4, currentColors.color4, colorProgress),
-      color5: mix(previousColors.color5, currentColors.color5, colorProgress),
+      color1: mix(previousColors.color1 || '', currentColors.color1 || '', colorProgress),
+      color2: mix(previousColors.color2 || '', currentColors.color2 || '', colorProgress),
+      color3: mix(previousColors.color3 || '', currentColors.color3 || '', colorProgress),
+      color4: mix(previousColors.color4 || '', currentColors.color4 || '', colorProgress),
+      color5: mix(previousColors.color5 || '', currentColors.color5 || '', colorProgress),
     };
   }, [previousColors, currentColors, colorProgress]);
 
