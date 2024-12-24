@@ -67,6 +67,10 @@ const Navbar = () => {
       await router.push('/#projects');
     }
     
+    if (pathname === '/' && window.location.hash === '#projects') {
+      window.location.hash = '';
+    }
+    
     const scrollToSection = (retryCount = 0) => {
       const projectsSection = document.getElementById('projects');
       if (!projectsSection) {
@@ -80,13 +84,29 @@ const Navbar = () => {
       const navbarHeight = navbar ? navbar.offsetHeight : 0;
       const offsetPosition = projectsSection.offsetTop - navbarHeight + 24;
       
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
+      const start = window.pageYOffset;
+      const distance = offsetPosition - start;
+      const duration = 300;
+      let startTime: number | null = null;
+
+      const animation = (currentTime: number) => {
+        if (startTime === null) startTime = currentTime;
+        const timeElapsed = currentTime - startTime;
+        const progress = Math.min(timeElapsed / duration, 1);
+
+        const ease = (t: number) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+        
+        window.scrollTo(0, start + distance * ease(progress));
+
+        if (timeElapsed < duration) {
+          requestAnimationFrame(animation);
+        }
+      };
+
+      requestAnimationFrame(animation);
     };
 
-    setTimeout(scrollToSection, isAboutPage ? 100 : 0);
+    scrollToSection();
   };
 
   const scrollToTop = async (e: React.MouseEvent<HTMLAnchorElement>) => {
