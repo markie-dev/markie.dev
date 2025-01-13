@@ -3,7 +3,7 @@ import { Project } from "../types/project";
 export const projects: Project[] = [
   {
     title: "harmony",
-    description: "An iOS app that tracks your listening history in the background and displays in a beautiful and minimalistic feed for all your friends to see and engage with.",
+    description: "An iOS app that tracks your listening history and displays it in a minimalistic feed with color extraction and animations for each song. Uses background modes and APNs to seamlessly track listening history. Also allows users to add their friends in order to have a combined social feed for everyone.",
     technologies: ["SwiftUI", "UIKit", "Firebase", "Typescript"],
     media: {
       type: "image",
