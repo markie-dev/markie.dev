@@ -2,6 +2,20 @@ import { Project } from "../types/project";
 
 export const projects: Project[] = [
   {
+    title: "harmony",
+    description: "An iOS app that tracks your listening history in the background and displays in a beautiful and minimalistic feed for all your friends to see and engage with.",
+    technologies: ["SwiftUI", "UIKit", "Firebase", "Typescript"],
+    media: {
+      type: "image",
+      sources: {
+        image: "/harmony_hero.jpg"
+      },
+      zoom: 1.01
+    },
+    githubUrl: "",
+    liveUrl: "https://testflight.apple.com/join/6haub8wx"
+  },
+  {
     title: "Doctor Finder",
     description: "A website that allows users to find doctors in their area. Features include appointment scheduling, doctor reviews, patient symptoms, filtering, and more.",
     technologies: ["React", "Next.js", "Tailwind CSS", "TypeScript", "shadcn/ui", "Firebase"],

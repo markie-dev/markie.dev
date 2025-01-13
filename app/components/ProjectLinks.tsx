@@ -10,7 +10,7 @@ type ProjectLinksProps = {
 export default function ProjectLinks({ githubUrl, liveUrl }: ProjectLinksProps) {
   return (
     <div className="flex gap-4">
-      {githubUrl && (
+      {githubUrl ? (
         <a 
           href={githubUrl}
           target="_blank"
@@ -26,6 +26,16 @@ export default function ProjectLinks({ githubUrl, liveUrl }: ProjectLinksProps) 
           <GithubLogo size={20} weight="bold" />
           <span className="font-medium text-sm sm:text-base">View Code</span>
         </a>
+      ) : (
+        <span className="flex items-center gap-2 px-4 py-2 rounded-md 
+          border border-gray-200 dark:border-zinc-700 
+          bg-gray-50/50 dark:bg-zinc-800/50 
+          text-gray-400 dark:text-gray-500 
+          opacity-60 cursor-not-allowed"
+        >
+          <GithubLogo size={20} weight="bold" />
+          <span className="font-medium text-sm sm:text-base">Closed Source</span>
+        </span>
       )}
       {liveUrl ? (
         <a 
