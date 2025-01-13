@@ -8,7 +8,7 @@ export const projects: Project[] = [
     media: {
       type: "image",
       sources: {
-        image: "/harmony_hero.jpg"
+        image: "/harmony.jpg"
       },
       zoom: 1.01
     },
