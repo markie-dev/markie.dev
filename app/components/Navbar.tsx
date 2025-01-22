@@ -178,7 +178,7 @@ const Navbar = () => {
                 about
               </Link>
               <Link 
-                href="/resume.pdf" 
+                href="/Resume_MarcusEllison_1.pdf" 
                 target="_blank" 
                 className="cursor-pointer relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-gray-500 dark:after:bg-gray-400 after:transition-all after:duration-300 hover:after:w-full hover:after:bg-gray-500 dark:hover:after:bg-gray-400"
               >
