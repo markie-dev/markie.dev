@@ -13,7 +13,6 @@ type MusicWidgetProps = {
   initialTracks: NonNullable<Awaited<ReturnType<typeof getTrackDetails>>>[];
 }
 
-// Move these outside the component to avoid recreation
 const buttonBaseClasses = `
   absolute top-1/2 -translate-y-1/2 z-10
   p-3 rounded-full 
@@ -28,22 +27,18 @@ const SWIPE_THRESHOLD = 50;
 const ENABLE_BLUR_EFFECTS = true;
 
 export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
-  // Add this near the top with other refs
   const fetchControllerRef = useRef<AbortController | null>(null);
   const isFetchingRef = useRef(false);
   
-  // Optimize initial state
   const [tracks, setTracks] = useState(initialTracks);
   const [trackIndex, setTrackIndex] = useState(0);
   const currentTrack = tracks[trackIndex];
   
-  // Lazy initialize these states
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-  // Lazy initialize colors
   const [currentColors, setCurrentColors] = useState(() => ({
     color1: initialTracks[0].color1,
     color2: initialTracks[0].color2,
@@ -105,7 +100,6 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
   const animationRef = useRef<number | undefined>(undefined);
   const touchStartX = useRef<number | null>(null);
 
-  // Function to interpolate between colors
   const interpolatedColors = useMemo(() => {
     return {
       color1: mix(previousColors.color1 || '', currentColors.color1 || '', colorProgress),
@@ -116,9 +110,7 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
     };
   }, [previousColors, currentColors, colorProgress]);
 
-  // Handle color transitions when track changes
   useEffect(() => {
-    // Update colors when track changes
     setCurrentColors({
       color1: currentTrack.color1,
       color2: currentTrack.color2,
@@ -130,7 +122,6 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
     setPreviousColors(interpolatedColors);
     setColorProgress(0);
     
-    // Force a reset of hover state when track changes
     setIsHovering(false);
     
     const startTime = performance.now();
@@ -156,7 +147,6 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
     };
   }, [currentTrack]);
 
-  // Add Safari detection
   const [isSafari, setIsSafari] = useState(false);
 
   useEffect(() => {
@@ -169,31 +159,26 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
     WebkitBackfaceVisibility: 'hidden'
   } : {};
 
-  // Add this near other state declarations
   const [hasFetched, setHasFetched] = useState(() => {
-    // Check localStorage on component mount
     if (typeof window === 'undefined') return false;
     const lastFetchTime = localStorage.getItem('lastMusicFetch');
     if (!lastFetchTime) return false;
     
-    // Consider fetch valid for 30 seconds (matching our other cache)
     const FETCH_VALIDITY = 30 * 1000; // 30 seconds in milliseconds
     const isValid = Date.now() - parseInt(lastFetchTime) < FETCH_VALIDITY;
     
-    // Only consider it fetched if we actually have the tracks in cache
     const cachedTracks = localStorage.getItem('trackCache');
     return isValid && cachedTracks !== null;
   });
 
-  // Modify the fetch effect
   useEffect(() => {
-    if (hasFetched || tracks.length >= 16 || isFetchingRef.current) {
+    if (hasFetched || tracks.length >= 50 || isFetchingRef.current) {
       console.log('🔄 Client: Skipping fetch - already done or have enough tracks');
       return;
     }
 
     const fetchRemainingTracks = async () => {
-      if (hasFetched || tracks.length >= 16 || isFetchingRef.current) return;
+      if (hasFetched || tracks.length >= 50 || isFetchingRef.current) return;
 
       isFetchingRef.current = true;
       console.log('🎵 Client: Fetching remaining tracks');
@@ -203,12 +188,12 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
         
         let currentStart = tracks.length;
         const CHUNK_SIZE = 8;
-        const MAX_TRACKS = 16; // Reduced from 50 to 16
+        const MAX_TRACKS = 50;
 
         while (currentStart < MAX_TRACKS) {
           const chunkEnd = Math.min(currentStart + CHUNK_SIZE, MAX_TRACKS);
           
-          const res = await fetch(`/api/tracks?start=${currentStart}&end=${chunkEnd}`, {
+          const res = await fetch(`/api/track?start=${currentStart}&end=${chunkEnd}`, {
             signal: fetchControllerRef.current?.signal,
             cache: 'no-store'
           });
@@ -222,7 +207,6 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
           currentStart = chunkEnd;
         }
 
-        // After successful fetch, update localStorage
         localStorage.setItem('lastMusicFetch', Date.now().toString());
         setHasFetched(true);
       } catch (error) {
@@ -242,7 +226,7 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
     return () => {
       fetchControllerRef.current?.abort();
     };
-  }, [hasFetched, tracks.length]); // Add hasFetched to dependencies
+  }, [hasFetched, tracks.length]);
 
   return (
     <div 

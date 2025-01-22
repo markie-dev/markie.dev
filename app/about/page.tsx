@@ -8,51 +8,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import VideoTooltip from "../components/VideoTooltip";
 import type { getTrackDetails } from '../actions/getTrackDetails';
 
-// Cache duration in milliseconds (30 seconds)
-const CACHE_DURATION = 30 * 1000;
-
-interface CachedData {
-  tracks: NonNullable<Awaited<ReturnType<typeof getTrackDetails>>>[];
-  timestamp: number;
-}
-
-function getCache(): CachedData | null {
-  if (typeof window === 'undefined') return null;
-  
-  try {
-    const cached = localStorage.getItem('trackCache');
-    if (!cached) return null;
-
-    const data: CachedData = JSON.parse(cached);
-    const now = Date.now();
-    
-    // Check if cache is expired
-    if (now - data.timestamp > CACHE_DURATION) {
-      localStorage.removeItem('trackCache');
-      return null;
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('Error reading cache:', error);
-    return null;
-  }
-}
-
-function setCache(tracks: NonNullable<Awaited<ReturnType<typeof getTrackDetails>>>[]) {
-  if (typeof window === 'undefined') return;
-  
-  try {
-    const cacheData: CachedData = {
-      tracks,
-      timestamp: Date.now()
-    };
-    localStorage.setItem('trackCache', JSON.stringify(cacheData));
-  } catch (error) {
-    console.error('Error setting cache:', error);
-  }
-}
-
 export default function About() {
   const [initialTracks, setInitialTracks] = useState<NonNullable<Awaited<ReturnType<typeof getTrackDetails>>>[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,29 +15,15 @@ export default function About() {
   useEffect(() => {
     let isMounted = true;
 
-    async function fetchInitialTracks() {
-      // Try to get data from cache first
-      const cachedData = getCache();
-      if (cachedData) {
-        console.log('🎵 Client: Using cached tracks');
-        if (isMounted) {
-          setInitialTracks(cachedData.tracks);
-          setIsLoading(false);
-        }
-        return;
-      }
-
-      // If no cache or expired, fetch from API
-      console.log('🎵 Client: Fetching fresh track');
+    async function fetchInitialTrack() {
       try {
         // Only fetch the first track initially for fast loading
-        const res = await fetch('/api/track?index=0');
+        const res = await fetch('/api/track?start=0');
         if (!res.ok) throw new Error('Failed to fetch track');
         const track = await res.json();
         
         if (track && isMounted) {
           setInitialTracks([track]);
-          setCache([track]);
           setIsLoading(false);
           
           // Fetch additional tracks in the background
@@ -105,16 +46,14 @@ export default function About() {
         const validTracks = additionalTracks.filter(track => track !== null);
         
         if (isMounted) {
-          const allTracks = [...existingTracks, ...validTracks];
-          setInitialTracks(allTracks);
-          setCache(allTracks);
+          setInitialTracks([...existingTracks, ...validTracks]);
         }
       } catch (error) {
         console.error('Error fetching additional tracks:', error);
       }
     }
 
-    fetchInitialTracks();
+    fetchInitialTrack();
 
     return () => {
       isMounted = false;
