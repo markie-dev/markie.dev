@@ -1,26 +1,125 @@
-import { Suspense } from 'react';
+'use client';
+
+import { Suspense, useEffect, useState } from 'react';
 import Image from "next/image";
 import Footer from "../components/Footer";
 import MusicWidget from "../components/MusicWidget";
 import { Skeleton } from "@/components/ui/skeleton"
 import VideoTooltip from "../components/VideoTooltip";
-import { getTrackDetails } from '../actions/getTrackDetails';
+import type { getTrackDetails } from '../actions/getTrackDetails';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// Cache duration in milliseconds (30 seconds)
+const CACHE_DURATION = 30 * 1000;
 
-async function getInitialTracks() {
-  console.log('🎵 Server: Fetching initial tracks');
-  const track = await getTrackDetails(0);
-  
-  const validTracks = track ? [track] : [];
-  console.log(`✅ Server: Got ${validTracks.length} initial tracks`);
-  
-  return validTracks;
+interface CachedData {
+  tracks: NonNullable<Awaited<ReturnType<typeof getTrackDetails>>>[];
+  timestamp: number;
 }
 
-export default async function About() {
-  const initialTracks = await getInitialTracks();
+function getCache(): CachedData | null {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    const cached = localStorage.getItem('trackCache');
+    if (!cached) return null;
+
+    const data: CachedData = JSON.parse(cached);
+    const now = Date.now();
+    
+    // Check if cache is expired
+    if (now - data.timestamp > CACHE_DURATION) {
+      localStorage.removeItem('trackCache');
+      return null;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error reading cache:', error);
+    return null;
+  }
+}
+
+function setCache(tracks: NonNullable<Awaited<ReturnType<typeof getTrackDetails>>>[]) {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const cacheData: CachedData = {
+      tracks,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('trackCache', JSON.stringify(cacheData));
+  } catch (error) {
+    console.error('Error setting cache:', error);
+  }
+}
+
+export default function About() {
+  const [initialTracks, setInitialTracks] = useState<NonNullable<Awaited<ReturnType<typeof getTrackDetails>>>[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchInitialTracks() {
+      // Try to get data from cache first
+      const cachedData = getCache();
+      if (cachedData) {
+        console.log('🎵 Client: Using cached tracks');
+        if (isMounted) {
+          setInitialTracks(cachedData.tracks);
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      // If no cache or expired, fetch from API
+      console.log('🎵 Client: Fetching fresh track');
+      try {
+        // Only fetch the first track initially for fast loading
+        const res = await fetch('/api/track?index=0');
+        if (!res.ok) throw new Error('Failed to fetch track');
+        const track = await res.json();
+        
+        if (track && isMounted) {
+          setInitialTracks([track]);
+          setCache([track]);
+          setIsLoading(false);
+          
+          // Fetch additional tracks in the background
+          fetchAdditionalTracks([track]);
+        }
+      } catch (error) {
+        console.error('Error fetching initial track:', error);
+        if (isMounted) setIsLoading(false);
+      }
+    }
+
+    async function fetchAdditionalTracks(existingTracks: NonNullable<Awaited<ReturnType<typeof getTrackDetails>>>[]) {
+      try {
+        const promises = [];
+        for (let i = 1; i < 8; i++) {
+          promises.push(fetch(`/api/track?index=${i}`).then(res => res.json()));
+        }
+        
+        const additionalTracks = await Promise.all(promises);
+        const validTracks = additionalTracks.filter(track => track !== null);
+        
+        if (isMounted) {
+          const allTracks = [...existingTracks, ...validTracks];
+          setInitialTracks(allTracks);
+          setCache(allTracks);
+        }
+      } catch (error) {
+        console.error('Error fetching additional tracks:', error);
+      }
+    }
+
+    fetchInitialTracks();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="flex flex-col justify-between">
@@ -108,7 +207,23 @@ export default async function About() {
                   >
                     <div className="hidden lg:block mt-8">
                       <div className="relative z-10 h-[120px]">
-                        <MusicWidget initialTracks={initialTracks} />
+                        {isLoading ? (
+                          <div className="relative p-4 rounded-xl bg-gray-100 dark:bg-gray-800/50 shadow-lg">
+                            <div className="flex items-center gap-4">
+                              {/* Album art skeleton */}
+                              <Skeleton className="h-16 w-16 rounded-lg shrink-0" />
+                              
+                              {/* Text content skeleton */}
+                              <div className="flex flex-col flex-1 gap-2">
+                                <Skeleton className="h-4 w-20" />
+                                <Skeleton className="h-6 w-48" />
+                                <Skeleton className="h-4 w-32" />
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <MusicWidget initialTracks={initialTracks} />
+                        )}
                       </div>
                     </div>
                   </Suspense>
@@ -125,7 +240,23 @@ export default async function About() {
           >
             <div className="lg:hidden mt-8 flex flex-col gap-4 h-[120px]">
               <div className="relative z-10 h-full">
-                <MusicWidget initialTracks={initialTracks} />
+                {isLoading ? (
+                  <div className="relative p-4 rounded-xl bg-gray-100 dark:bg-gray-800/50 shadow-lg">
+                    <div className="flex items-center gap-4">
+                      {/* Album art skeleton */}
+                      <Skeleton className="h-16 w-16 rounded-lg shrink-0" />
+                      
+                      {/* Text content skeleton */}
+                      <div className="flex flex-col flex-1 gap-2">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-6 w-48" />
+                        <Skeleton className="h-4 w-32" />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <MusicWidget initialTracks={initialTracks} />
+                )}
               </div>
             </div>
           </Suspense>

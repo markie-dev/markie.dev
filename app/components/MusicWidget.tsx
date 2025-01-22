@@ -176,23 +176,24 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
     const lastFetchTime = localStorage.getItem('lastMusicFetch');
     if (!lastFetchTime) return false;
     
-    // Consider fetch valid for 5 minutes
-    const FETCH_VALIDITY = 5 * 60 * 1000; // 5 minutes in milliseconds
+    // Consider fetch valid for 30 seconds (matching our other cache)
+    const FETCH_VALIDITY = 30 * 1000; // 30 seconds in milliseconds
     const isValid = Date.now() - parseInt(lastFetchTime) < FETCH_VALIDITY;
     
-    // Only consider it fetched if we actually have the tracks
-    return isValid && tracks.length >= 50;
+    // Only consider it fetched if we actually have the tracks in cache
+    const cachedTracks = localStorage.getItem('trackCache');
+    return isValid && cachedTracks !== null;
   });
 
   // Modify the fetch effect
   useEffect(() => {
-    if (hasFetched || tracks.length >= 50 || isFetchingRef.current) {
-      console.log('🔄 Client: Skipping fetch - already done or have all tracks');
+    if (hasFetched || tracks.length >= 16 || isFetchingRef.current) {
+      console.log('🔄 Client: Skipping fetch - already done or have enough tracks');
       return;
     }
 
     const fetchRemainingTracks = async () => {
-      if (hasFetched || tracks.length >= 50 || isFetchingRef.current) return;
+      if (hasFetched || tracks.length >= 16 || isFetchingRef.current) return;
 
       isFetchingRef.current = true;
       console.log('🎵 Client: Fetching remaining tracks');
@@ -202,9 +203,10 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
         
         let currentStart = tracks.length;
         const CHUNK_SIZE = 8;
+        const MAX_TRACKS = 16; // Reduced from 50 to 16
 
-        while (currentStart < 50) {
-          const chunkEnd = Math.min(currentStart + CHUNK_SIZE, 50);
+        while (currentStart < MAX_TRACKS) {
+          const chunkEnd = Math.min(currentStart + CHUNK_SIZE, MAX_TRACKS);
           
           const res = await fetch(`/api/tracks?start=${currentStart}&end=${chunkEnd}`, {
             signal: fetchControllerRef.current?.signal,
@@ -218,11 +220,6 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
           console.log(`✅ Client: Got ${newTracks.length} additional tracks (${currentStart}-${chunkEnd})`);
 
           currentStart = chunkEnd;
-
-          // Small delay between chunks
-          if (currentStart < 50) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-          }
         }
 
         // After successful fetch, update localStorage
