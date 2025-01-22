@@ -22,6 +22,7 @@ export default function VideoTooltip({
   hasWebM = false
 }: VideoTooltipProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const aspectRatio = isVertical ? "9/16" : "16/9";
 
   const renderVideoSources = () => (
@@ -29,6 +30,23 @@ export default function VideoTooltip({
       {hasWebM && <source src={videoSrc.replace('.mp4', '.webm')} type="video/webm" />}
       <source src={videoSrc} type="video/mp4" />
     </>
+  );
+
+  // Only render video when tooltip/modal is open
+  const renderVideo = (className: string, style?: React.CSSProperties) => (
+    <video 
+      autoPlay 
+      loop 
+      muted 
+      playsInline 
+      preload="none" // Changed from "auto" to "none"
+      controls={false} 
+      className={className}
+      style={style}
+      onLoadedData={() => setIsVideoLoaded(true)}
+    >
+      {renderVideoSources()}
+    </video>
   );
 
   return (
@@ -42,63 +60,47 @@ export default function VideoTooltip({
             {emoji}
           </TooltipTrigger>
           <TooltipContent className="hidden lg:block">
-            <video 
-              autoPlay 
-              loop 
-              muted 
-              playsInline 
-              preload="auto" 
-              controls={false} 
-              className="rounded-lg object-cover"
-              style={{ width: videoWidth, height: videoHeight }}
-            >
-              {renderVideoSources()}
-            </video>
+            {renderVideo(
+              "rounded-lg object-cover",
+              { width: videoWidth, height: videoHeight }
+            )}
           </TooltipContent>
           
           {/* Mobile video modal */}
-          <div 
-            className={`lg:hidden fixed inset-0 flex items-center justify-center bg-black/50 z-[999999] transition-all duration-300 ${
-              isOpen 
-                ? 'opacity-100 pointer-events-auto' 
-                : 'opacity-0 pointer-events-none'
-            }`}
-            onClick={() => setIsOpen(false)}
-          >
+          {isOpen && (
             <div 
-              className={`${
-                isVertical ? 'w-[60vw] max-w-[300px]' : 'w-full max-w-[90vw]'
-              } mx-4 transform transition-all duration-300 ease-out ${
-                isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+              className={`lg:hidden fixed inset-0 flex items-center justify-center bg-black/50 z-[999999] transition-all duration-300 ${
+                isVideoLoaded 
+                  ? 'opacity-100 pointer-events-auto' 
+                  : 'opacity-0 pointer-events-none'
               }`}
-              onClick={(e) => e.stopPropagation()}
+              onClick={() => setIsOpen(false)}
             >
-              <div className="relative">
-                <video 
-                  autoPlay 
-                  loop 
-                  muted 
-                  playsInline 
-                  preload="auto" 
-                  controls={false} 
-                  className={`w-full rounded-lg object-cover shadow-2xl ${
-                    isVertical ? 'max-h-[70vh]' : 'max-h-[60vh]'
-                  }`}
-                  style={{
-                    aspectRatio
-                  }}
-                >
-                  {renderVideoSources()}
-                </video>
-                <button 
-                  className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-transform duration-200 active:scale-90"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <X size={18} weight="bold" />
-                </button>
+              <div 
+                className={`${
+                  isVertical ? 'w-[60vw] max-w-[300px]' : 'w-full max-w-[90vw]'
+                } mx-4 transform transition-all duration-300 ease-out ${
+                  isVideoLoaded ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+                }`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="relative">
+                  {renderVideo(
+                    `w-full rounded-lg object-cover shadow-2xl ${
+                      isVertical ? 'max-h-[70vh]' : 'max-h-[60vh]'
+                    }`,
+                    { aspectRatio }
+                  )}
+                  <button 
+                    className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-transform duration-200 active:scale-90"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <X size={18} weight="bold" />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </Tooltip>
     </TooltipProvider>
