@@ -17,7 +17,7 @@ const buttonBaseClasses = `
   absolute top-1/2 -translate-y-1/2 z-10
   p-3 rounded-full 
   bg-black/20 dark:bg-white/20 
-  backdrop-blur-sm
+  backdrop-blur-xs
   text-white/70 dark:text-black/70 
   hover:text-white dark:hover:text-black
   hidden md:block md:opacity-0 md:group-hover:opacity-100
@@ -409,7 +409,7 @@ export default function MusicWidget({ initialTracks }: MusicWidgetProps) {
                   isNowPlaying={currentTrack.track['@attr']?.nowplaying === 'true'} 
                 />
               </span>
-              <span className="font-semibold text-lg leading-tight mt-0.5 drop-shadow-sm truncate w-full max-w-[250px] sm:max-w-[250px] md:max-w-[300px] lg:max-w-[400px]">
+              <span className="font-semibold text-lg leading-tight mt-0.5 drop-shadow-xs truncate w-full max-w-[250px] sm:max-w-[250px] md:max-w-[300px] lg:max-w-[400px]">
                 {currentTrack.track.name}
               </span>
               <span className="text-sm mt-0.5 text-white/90">

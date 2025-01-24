@@ -77,7 +77,7 @@ export default function VideoTooltip({
           {/* Mobile video modal */}
           {isOpen && (
             <div 
-              className={`lg:hidden fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-[999999] transition-all duration-300 ${
+              className={`lg:hidden fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-xs z-999999 transition-all duration-300 ${
                 isVideoLoaded 
                   ? 'opacity-100 pointer-events-auto' 
                   : 'opacity-0 pointer-events-none'
@@ -100,7 +100,7 @@ export default function VideoTooltip({
                     { aspectRatio }
                   )}
                   <button 
-                    className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-all duration-200 hover:bg-black/70 hover:scale-110 active:scale-90 transform-gpu"
+                    className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-xs transition-all duration-200 hover:bg-black/70 hover:scale-110 active:scale-90 transform-gpu"
                     onClick={() => setIsOpen(false)}
                   >
                     <X size={18} weight="bold" />

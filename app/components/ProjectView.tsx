@@ -56,7 +56,7 @@ export default function ProjectView() {
                     key={techIndex}
                     className="px-3 py-1 rounded-full text-sm text-gray-600 dark:text-gray-300
                       bg-gray-100 dark:bg-zinc-800/80
-                      hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-purple-500/10
+                      hover:bg-linear-to-r hover:from-blue-500/10 hover:to-purple-500/10
                       dark:hover:from-blue-500/10 dark:hover:to-purple-500/10
                       transition-all duration-300 ease-out
                       hover:scale-105 hover:shadow-md
